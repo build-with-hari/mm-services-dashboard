@@ -81,14 +81,16 @@
 
     <!-- Step 3: Data Table -->
     <div id="dashboard-section">
-      <div class="card">
+      <div class="card" style="overflow-x: auto;">
         <table id="anomaly-table">
           <thead>
             <tr>
-              <th style="width: 15%">Ticket</th>
-              <th style="width: 20%">Anomaly Type</th>
-              <th style="width: 50%">AI Summary</th>
-              <th style="width: 15%; text-align: right;">Action</th>
+              <th style="width: 12%">Date & Ticket</th>
+              <th style="width: 15%">Client & Module</th>
+              <th style="width: 12%">Owner & Priority</th>
+              <th style="width: 15%">Classification & Anomaly</th>
+              <th style="width: 36%">Subject & AI Summary</th>
+              <th style="width: 10%; text-align: right;">Action</th>
             </tr>
           </thead>
           <tbody id="table-body">
@@ -97,7 +99,6 @@
         </table>
       </div>
     </div>
-  </div>
 
   <script>
     // --- IMPORTANT: Paste your published Apps Script Web App URL here ---
@@ -142,17 +143,45 @@
       tbody.innerHTML = '';
 
       if (!anomalies || anomalies.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#059669; font-weight:600; padding:3rem;">✅ No anomalies detected in recent tickets!</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#059669; font-weight:600; padding:3rem;">✅ No anomalies detected in recent tickets!</td></tr>`;
         return;
       }
 
       anomalies.forEach(item => {
+        // Format the date nicely
+        const dateObj = new Date(item.createdDate);
+        const formattedDate = isNaN(dateObj) ? 'Unknown Date' : dateObj.toLocaleDateString();
+
+        // Color code priorities
+        let priorityColor = '#e2e8f0'; // default gray
+        if (item.priority.toLowerCase() === 'high') priorityColor = '#fef08a';
+        if (item.priority.toLowerCase() === 'urgent') priorityColor = '#fecaca';
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><strong>#${item.ticketId}</strong><br><small style="color:#475569;">${item.subject}</small></td>
-          <td><span class="badge">${item.issue}</span></td>
-          <td style="line-height: 1.5; color: #334155;">${item.aiSummary}</td>
-          <td style="text-align: right;"><a href="${item.url}" target="_blank" class="btn">View in Zoho</a></td>
+          <td>
+            <small style="color: #64748b;">${formattedDate}</small><br>
+            <strong>#${item.ticketId}</strong>
+          </td>
+          <td>
+            <strong>${item.clientName}</strong><br>
+            <small style="color: #64748b;">${item.module}</small>
+          </td>
+          <td>
+            <span style="font-size: 0.9rem;">${item.owner}</span><br>
+            <span class="badge" style="background: ${priorityColor}; color: #334155; margin-top: 4px;">${item.priority}</span>
+          </td>
+          <td>
+            <small style="color: #64748b; display: block; margin-bottom: 4px;">${item.classification}</small>
+            <span class="badge" style="background:#fee2e2; color:#b91c1c;">${item.issue}</span>
+          </td>
+          <td style="line-height: 1.5; font-size: 0.9rem;">
+            <strong style="color: #0f172a;">${item.subject}</strong><br>
+            <span style="color: #334155;">${item.aiSummary}</span>
+          </td>
+          <td style="text-align: right; vertical-align: middle;">
+            <a href="${item.url}" target="_blank" class="btn">View</a>
+          </td>
         `;
         tbody.appendChild(tr);
       });
