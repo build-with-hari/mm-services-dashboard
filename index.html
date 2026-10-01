@@ -106,6 +106,9 @@
     .badge-normal { background: rgba(52, 211, 153, 0.1); color: var(--safe-color); border-color: rgba(52, 211, 153, 0.3); }
     .badge-anomaly { background: rgba(248, 113, 113, 0.1); color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3); box-shadow: 0 0 10px rgba(248, 113, 113, 0.1); }
     
+    /* NEW AI ACTION SUGGESTION */
+    .ai-action-box { margin-top: 10px; background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent-primary); padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; }
+    
     /* LOADING SPINNER */
     .loader-container { text-align: center; padding: 5rem 0; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
     .spinner { width: 44px; height: 44px; border: 4px solid var(--glass-border); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s infinite cubic-bezier(0.6, 0.2, 0.4, 0.8); }
@@ -137,11 +140,11 @@
         
         <div style="display: flex; justify-content: center;">
           <div id="g_id_onload"
-             data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com"
-             data-context="signin"
-             data-ux_mode="popup"
-             data-callback="handleGoogleLogin"
-             data-auto_prompt="false">
+               data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com"
+               data-context="signin"
+               data-ux_mode="popup"
+               data-callback="handleGoogleLogin"
+               data-auto_prompt="false">
           </div>
           <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-size="large"></div>
         </div>
@@ -237,11 +240,11 @@
               <tr>
                 <th style="width: 12%;">Date & Ticket #</th>
                 <th style="width: 15%;">Client & Module</th>
-                <th style="width: 14%;">Owner & Priority</th>
+                <th style="width: 12%;">Owner & Priority</th>
                 <th style="width: 12%;">Classification</th>
-                <th style="width: 14%;">AI Anomaly Status</th>
-                <th style="width: 25%;">Subject & Executive Summary</th>
-                <th style="width: 8%; text-align: right;">Action</th>
+                <th style="width: 12%;">AI Anomaly Status</th>
+                <th style="width: 30%;">Subject, Executive Summary & Action</th>
+                <th style="width: 7%; text-align: right;">Link</th>
               </tr>
             </thead>
             <tbody id="ticketTableBody"></tbody>
@@ -255,7 +258,6 @@
     // ==========================================
     // 1. CONFIGURATION
     // ==========================================
-    // REQUIRED: Use the exact URL provided by the user
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
     
     let rawTicketsData = [];
@@ -265,12 +267,10 @@
     // 2. INITIALIZATION & SESSION MANAGEMENT
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
-      // Check for Dark Mode preference
       const savedTheme = localStorage.getItem('mm_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
-      document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀';
 
-      // Check 7-Day Session Validity
       const storedSession = localStorage.getItem('mm_ticket_session');
       const expiresAt = localStorage.getItem('mm_ticket_session_expiry');
       const userName = localStorage.getItem('mm_ticket_user_name');
@@ -290,7 +290,7 @@
       
       fetch(BACKEND_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Prevent CORS preflight
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
         body: JSON.stringify({ action: "authenticate", idToken: response.credential })
       })
       .then(res => res.json())
@@ -345,7 +345,6 @@
           rawTicketsData = res.data.tickets || [];
           document.getElementById('kpiLastSync').textContent = res.data.lastRefreshed;
           
-          // Sort by newest modified by default
           rawTicketsData.sort((a, b) => new Date(b.modifiedDate) - new Date(a.modifiedDate));
           
           updateKPIs();
@@ -403,7 +402,6 @@
       tbody.innerHTML = '';
 
       const filtered = rawTicketsData.filter(t => {
-        // Safe string conversions
         const safeSubject = (t.subject || "").toLowerCase();
         const safeTicketNum = (t.ticketNumber || "").toString().toLowerCase();
         const safeClient = (t.clientName || "").toLowerCase();
@@ -411,7 +409,6 @@
         const safeModule = (t.module || "").toLowerCase();
         const safePriority = (t.priority || "").toLowerCase();
         
-        // Ensure boolean resolution from strings
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
 
         const matchesQuery = !query || 
@@ -437,21 +434,20 @@
       }
 
       filtered.forEach(t => {
-        // Format Date
         const dateObj = new Date(t.createdDate);
         const dateStr = isNaN(dateObj) ? "Unknown" : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         
-        // Priority Color Logic
         let pColor = "var(--text-muted)";
         const pLower = (t.priority || "").toLowerCase();
         if (pLower === 'high') pColor = "var(--warning-color)";
         if (pLower === 'urgent') pColor = "var(--danger-color)";
 
-        // Anomaly Badge Logic
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
         const badgeHtml = isAnomaly 
           ? `<span class="badge badge-anomaly">⚠️ ${t.anomalyType || 'Flagged'}</span>` 
           : `<span class="badge badge-normal">✅ Healthy</span>`;
+          
+        const aiActionHtml = t.suggestedAction ? `<div class="ai-action-box">💡 <strong>Next Step:</strong> ${t.suggestedAction}</div>` : '';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -476,6 +472,7 @@
           <td style="line-height: 1.5;">
             <strong style="color: var(--text-main); display: block; margin-bottom: 0.25rem; font-size: 0.95rem;">${t.subject}</strong>
             <span style="color: var(--text-muted); font-size: 0.85rem;">${t.aiSummary || 'No summary available.'}</span>
+            ${aiActionHtml}
           </td>
           <td style="text-align: right; vertical-align: middle;">
             <a href="${t.url}" target="_blank" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary);">Open ↗</a>
@@ -527,7 +524,6 @@
       toast.innerHTML = `<span>ℹ️</span> <div>${message}</div>`;
       container.appendChild(toast);
       
-      // Auto remove after 3 seconds
       setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(50px)';
