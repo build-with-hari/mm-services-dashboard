@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Anomaly Dashboard</title>
+  <!-- Google Identity Services for Secure SSO -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --text-muted: #475569;
+      --primary: #0ea5e9; --danger: #ef4444; --border: #e2e8f0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg); color: var(--text); margin: 0; padding: 2rem;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    
+    /* Login Section */
+    #login-section {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 60vh; background: var(--surface); border-radius: 12px; border: 1px solid var(--border);
+    }
+    #login-section h2 { margin-bottom: 0.5rem; }
+    #login-section p { color: var(--text-muted); margin-bottom: 2rem; }
+
+    /* Dashboard Section */
+    #dashboard-section { display: none; }
+    .card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { background: #f1f5f9; padding: 1rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    
+    .badge { background: #fee2e2; color: #b91c1c; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
+    .btn { background: var(--primary); color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 600; transition: 0.2s; }
+    .btn:hover { opacity: 0.9; }
+
+    /* Utilities */
+    .loader { display: none; text-align: center; padding: 4rem; color: var(--text-muted); }
+    .error-msg { color: var(--danger); font-weight: 600; margin-top: 1rem; display: none; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 style="margin: 0;">AI Ticket Monitor</h1>
+        <p style="margin: 0.25rem 0 0 0; color: var(--text-muted);">Secure Manager Portal</p>
+      </div>
+      <button id="logout-btn" class="btn" style="display: none; background: var(--text-muted);" onclick="location.reload()">Sign Out</button>
+    </div>
+
+    <!-- Step 1: Login -->
+    <div id="login-section">
+      <h2>Manager Access Restricted</h2>
+      <p>Please sign in with your authorized Mindmatrix account.</p>
+      
+      <!-- Google SSO Button Container -->
+      <div id="g_id_onload"
+         data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
+      
+      <div id="auth-error" class="error-msg"></div>
+    </div>
+
+    <!-- Step 2: Loader -->
+    <div id="loader" class="loader">
+      <h3>Authenticating & Fetching AI Report...</h3>
+      <p>This may take a few seconds.</p>
+    </div>
+
+    <!-- Step 3: Data Table -->
+    <div id="dashboard-section">
+      <div class="card">
+        <table id="anomaly-table">
+          <thead>
+            <tr>
+              <th style="width: 15%">Ticket</th>
+              <th style="width: 20%">Anomaly Type</th>
+              <th style="width: 50%">AI Summary</th>
+              <th style="width: 15%; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Data will be injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- IMPORTANT: Paste your published Apps Script Web App URL here ---
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec';
+
+    // Callback triggered automatically by Google after successful popup login
+    function handleCredentialResponse(response) {
+      const jwtToken = response.credential;
+      
+      // Update UI
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('loader').style.display = 'block';
+
+      // Send Token to Apps Script via POST request
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8', // Plain text avoids strict CORS preflight issues in GAS
+        },
+        body: JSON.stringify({ token: jwtToken })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('loader').style.display = 'none';
+        
+        if (data.success) {
+          document.getElementById('logout-btn').style.display = 'block';
+          document.getElementById('dashboard-section').style.display = 'block';
+          renderTable(data.data);
+        } else {
+          // Authentication failed (e.g. wrong email)
+          showError(data.error || "Access Denied.");
+        }
+      })
+      .catch(err => {
+        showError("Network error connecting to backend. Please check the Web App URL.");
+      });
+    }
+
+    function renderTable(anomalies) {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      if (!anomalies || anomalies.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#059669; font-weight:600; padding:3rem;">✅ No anomalies detected in recent tickets!</td></tr>`;
+        return;
+      }
+
+      anomalies.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>#${item.ticketId}</strong><br><small style="color:#475569;">${item.subject}</small></td>
+          <td><span class="badge">${item.issue}</span></td>
+          <td style="line-height: 1.5; color: #334155;">${item.aiSummary}</td>
+          <td style="text-align: right;"><a href="${item.url}" target="_blank" class="btn">View in Zoho</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function showError(msg) {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('login-section').style.display = 'flex';
+      const errEl = document.getElementById('auth-error');
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
