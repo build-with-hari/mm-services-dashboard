@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Executive AI Ticket Anomaly Portal</title>
   
+  <!-- Official Mindmatrix Favicon -->
   <link rel="icon" type="image/x-icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
@@ -350,52 +351,42 @@
     });
 
     // ==========================================
-    // 3. DEBUGGER: AUTHENTICATION FETCH
+    // 3. AUTHENTICATION & LOGIN (REVERTED TO WORKING)
     // ==========================================
     function handleGoogleLogin(response) {
       document.getElementById('authError').style.display = 'none';
-      const btn = document.querySelector('.g_id_signin');
-      if (btn) btn.style.opacity = '0.5';
-
+      
       fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "authenticate", idToken: response.credential }),
         redirect: 'follow'
       })
-      .then(async res => {
-        // INTERCEPT RAW RESPONSE FOR DEBUGGING
-        const rawText = await res.text();
-        console.log("🔍 AUTH DEBUG - RAW RESPONSE:", rawText);
-        
-        try {
-          return JSON.parse(rawText);
-        } catch (e) {
-          throw new Error("Google Apps Script returned an HTML error instead of JSON. Check F12 Console for details.");
-        }
-      })
+      .then(res => res.json())
       .then(data => {
         if (data.success) {
           localStorage.setItem('mm_ticket_session', data.sessionToken);
           localStorage.setItem('mm_ticket_session_expiry', data.expiresAt);
           localStorage.setItem('mm_ticket_user_name', data.userName);
           document.getElementById('userGreeting').textContent = "Hi, " + data.userName.split(' ')[0];
-          showToast("Authenticated safely.");
+          
+          showToast("Successfully authenticated!");
           showDashboardUI();
           loadDashboardData(false);
         } else {
-          document.getElementById('authError').innerHTML = "<strong>Access Denied:</strong><br>" + data.message;
-          document.getElementById('authError').style.display = 'block';
+          showAuthError(data.message || "Authentication failed.");
         }
       })
       .catch(err => {
-        console.error("🔴 AUTH ERROR CAUGHT:", err);
-        document.getElementById('authError').innerHTML = `<strong>Connection Failed:</strong><br>${err.message}<br><br><small>Press F12 and check Console tab for raw HTML response.</small>`;
-        document.getElementById('authError').style.display = 'block';
-      })
-      .finally(() => {
-        if (btn) btn.style.opacity = '1';
+        console.error("Auth fetch error:", err);
+        showAuthError("Network error: Could not connect to Apps Script backend.");
       });
+    }
+
+    function showAuthError(msg) {
+      const errEl = document.getElementById('authError');
+      errEl.innerHTML = `<strong>Authentication Failed:</strong><br>${msg}`;
+      errEl.style.display = 'block';
     }
 
     // ==========================================
@@ -424,6 +415,7 @@
           });
         });
       });
+
       document.addEventListener('click', closeAllDropdowns);
     }
 
@@ -437,7 +429,7 @@
     }
 
     // ==========================================
-    // 5. DEBUGGER: DASHBOARD DATA FETCH
+    // 5. DATA FETCHING (REVERTED TO WORKING)
     // ==========================================
     function triggerSync(forceZoho) {
       loadDashboardData(forceZoho);
@@ -465,7 +457,6 @@
       
       const btnId = forceRefresh ? 'zohoBtn' : 'refreshBtn';
       const btn = document.getElementById(btnId);
-      
       const originalText = btn.innerHTML;
       btn.innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Syncing...`;
       btn.disabled = true;
@@ -478,41 +469,29 @@
         body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh }),
         redirect: 'follow'
       })
-      .then(async res => {
-        // INTERCEPT RAW RESPONSE FOR DEBUGGING
-        const rawText = await res.text();
-        console.log("🔍 DASHBOARD DEBUG - RAW RESPONSE:", rawText);
-        
-        try {
-          return JSON.parse(rawText);
-        } catch (e) {
-          throw new Error("Google Apps Script returned an HTML error instead of JSON. Check F12 Console for details.");
-        }
-      })
+      .then(res => res.json())
       .then(res => {
         if (res.success) {
           rawTicketsData = res.data.tickets || [];
           document.getElementById('kpiLastSync').textContent = res.data.lastRefreshed;
+          
           updateKPIs();
           applyFilters();
-          showToast(forceRefresh ? "Zoho CRM Sync Complete." : "Sheet Data Refreshed.");
+          
+          if (forceRefresh) showToast("Dashboard synchronized successfully.");
         } else if (res.error === "SESSION_EXPIRED") {
+          showToast("Session expired. Please log in again.");
           logout();
         } else {
-          throw new Error(res.message || "Backend logic error.");
+          showToast("Error: " + res.message);
+          applyFilters(); // Trigger render to clear skeletons
         }
       })
       .catch(err => {
-        console.error("🔴 DASHBOARD ERROR CAUGHT:", err);
-        showToast("Connection Error. See table for details.");
-        
-        document.getElementById('ticketTableBody').innerHTML = `
-          <tr><td colspan="7" style="text-align:center; padding: 4rem;">
-            <svg class="svg-icon" style="width: 40px; height: 40px; color: var(--danger-color); margin-bottom:1rem;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><br>
-            <strong style="font-size: 1.1rem; color: var(--danger-color);">Detailed Error Intercepted</strong><br>
-            <span style="color: var(--text-muted); font-size: 0.9rem;">${err.message}</span><br><br>
-            <span style="color: var(--text-muted); font-size: 0.85rem;">Press <strong>F12</strong> and check the "Console" tab to see the exact text Google sent back.</span>
-          </td></tr>`;
+        console.error("Fetch error:", err);
+        showToast("Error loading data.");
+        // Fallback to clear skeletons if fetch fails completely
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to retrieve data.</td></tr>`;
       })
       .finally(() => {
         btn.innerHTML = originalText;
