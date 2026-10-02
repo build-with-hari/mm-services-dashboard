@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Executive AI Ticket Anomaly Portal</title>
   
-  <!-- Official Mindmatrix Favicon -->
   <link rel="icon" type="image/x-icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
@@ -319,7 +318,15 @@
     
     let rawTicketsData = [];
     let currentAnomalyFilter = "ALL";
-    let acknowledgedTickets = JSON.parse(localStorage.getItem('mm_acknowledged') || '[]');
+    
+    // SAFE PARSING: Prevents UI from crashing if LocalStorage gets corrupted
+    let acknowledgedTickets = [];
+    try {
+      acknowledgedTickets = JSON.parse(localStorage.getItem('mm_acknowledged') || '[]');
+      if (!Array.isArray(acknowledgedTickets)) acknowledgedTickets = [];
+    } catch (e) {
+      acknowledgedTickets = [];
+    }
 
     const icons = {
       moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>',
@@ -351,7 +358,7 @@
     });
 
     // ==========================================
-    // 3. AUTHENTICATION & LOGIN (REVERTED TO WORKING)
+    // 3. AUTHENTICATION & LOGIN (Cleaned)
     // ==========================================
     function handleGoogleLogin(response) {
       document.getElementById('authError').style.display = 'none';
@@ -429,7 +436,7 @@
     }
 
     // ==========================================
-    // 5. DATA FETCHING (REVERTED TO WORKING)
+    // 5. DATA FETCHING (Exactly matching the old working code)
     // ==========================================
     function triggerSync(forceZoho) {
       loadDashboardData(forceZoho);
@@ -472,8 +479,9 @@
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          rawTicketsData = res.data.tickets || [];
-          document.getElementById('kpiLastSync').textContent = res.data.lastRefreshed;
+          // SAFE CHECK: Filters out undefined or empty rows from Google Sheets
+          rawTicketsData = (res.data.tickets || []).filter(t => t && t.id);
+          document.getElementById('kpiLastSync').textContent = res.data.lastRefreshed || "--";
           
           updateKPIs();
           applyFilters();
@@ -484,13 +492,12 @@
           logout();
         } else {
           showToast("Error: " + res.message);
-          applyFilters(); // Trigger render to clear skeletons
+          document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to load data.</td></tr>`;
         }
       })
       .catch(err => {
         console.error("Fetch error:", err);
-        showToast("Error loading data.");
-        // Fallback to clear skeletons if fetch fails completely
+        showToast("Error loading data. Check console for details.");
         document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to retrieve data.</td></tr>`;
       })
       .finally(() => {
@@ -503,9 +510,10 @@
     // 6. DASHBOARD LOGIC (FILTERS & RENDER)
     // ==========================================
     function toggleAcknowledge(ticketId) {
-      const idx = acknowledgedTickets.indexOf(ticketId);
+      const idStr = String(ticketId);
+      const idx = acknowledgedTickets.indexOf(idStr);
       if (idx > -1) acknowledgedTickets.splice(idx, 1);
-      else acknowledgedTickets.push(ticketId);
+      else acknowledgedTickets.push(idStr);
       
       localStorage.setItem('mm_acknowledged', JSON.stringify(acknowledgedTickets));
       updateKPIs();
@@ -514,7 +522,7 @@
 
     function updateKPIs() {
       const total = rawTicketsData.length;
-      const anomalies = rawTicketsData.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(t.id.toString())).length;
+      const anomalies = rawTicketsData.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id))).length;
       document.getElementById('kpiTotal').textContent = total;
       document.getElementById('kpiAnomalies').textContent = anomalies;
       document.getElementById('kpiHealthy').textContent = total - anomalies;
@@ -538,13 +546,13 @@
 
       let filtered = rawTicketsData.filter(t => {
         const safeSubj = (t.subject || "").toLowerCase();
-        const safeNum = (t.ticketNumber || "").toString().toLowerCase();
+        const safeNum = String(t.ticketNumber || "").toLowerCase();
         const safeClient = (t.clientName || "").toLowerCase();
         const safeOwner = (t.owner || "").toLowerCase();
         const safePri = (t.priority || "").toLowerCase();
         
         const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
-        const isDismissed = acknowledgedTickets.includes(t.id.toString());
+        const isDismissed = acknowledgedTickets.includes(String(t.id));
         const isActivelyFlagged = isAnomalyRaw && !isDismissed;
 
         const mQuery = !query || safeSubj.includes(query) || safeNum.includes(query) || safeClient.includes(query);
@@ -564,8 +572,8 @@
       });
 
       filtered.sort((a, b) => {
-        if (sortVal === 'date-new') return new Date(b.createdDate) - new Date(a.createdDate);
-        if (sortVal === 'date-old') return new Date(a.createdDate) - new Date(b.createdDate);
+        if (sortVal === 'date-new') return new Date(b.createdDate || 0) - new Date(a.createdDate || 0);
+        if (sortVal === 'date-old') return new Date(a.createdDate || 0) - new Date(b.createdDate || 0);
         if (sortVal === 'priority') {
           const p = {'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
           return (p[(b.priority||'').toLowerCase()]||0) - (p[(a.priority||'').toLowerCase()]||0);
@@ -598,7 +606,7 @@
         if (pLower === 'urgent') pColor = "var(--danger-color)";
 
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
-        const isDismissed = acknowledgedTickets.includes(t.id.toString());
+        const isDismissed = acknowledgedTickets.includes(String(t.id));
         
         let badgeHtml = '';
         if (t.aiSummary === "Pending AI") {
