@@ -9,6 +9,7 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
+    /* THEME VARIABLES */
     :root {
       --bg-color: #0b0f19;
       --glass-bg: rgba(20, 25, 40, 0.65);
@@ -60,20 +61,35 @@
     .auth-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
     .auth-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 3rem 2.5rem; border-radius: 24px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(20px); }
 
+    /* MODERN TOOLTIPS */
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::before {
+      content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      background: var(--text-main); color: var(--bg-color); padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; white-space: nowrap;
+      opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 100; font-weight: 600; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    [data-tooltip]::after {
+      content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+      border-width: 4px; border-style: solid; border-color: var(--text-main) transparent transparent transparent;
+      opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 100; pointer-events: none;
+    }
+    [data-tooltip]:hover::before, [data-tooltip]:hover::after { opacity: 1; visibility: visible; }
+
     /* HEADER & BUTTONS */
     .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
     .brand-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.15rem; }
     .brand-subtitle { color: var(--text-muted); font-size: 0.85rem; }
     .action-group { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
     
-    button, .btn { cursor: pointer; border: none; padding: 0.6rem 1.1rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; outline: none; }
+    button, .btn { cursor: pointer; border: none; padding: 0 1.1rem; height: 38px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; outline: none; }
     .btn-primary { background: var(--accent-primary); color: #ffffff; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25); }
     .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
     .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--glass-border); }
     .btn-outline:hover { background: var(--glass-highlight); }
     .btn-danger { color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.05); }
     .btn-danger:hover { background: rgba(248, 113, 113, 0.1); }
-    .btn-icon { padding: 0.6rem; border-radius: 10px; width: 38px; height: 38px; display: flex; justify-content: center; align-items: center; }
+    .btn-icon { padding: 0; width: 38px; justify-content: center; }
+    .svg-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
     /* KPIs */
     .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
@@ -83,13 +99,15 @@
     .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 0.25rem 0; letter-spacing: -1px; }
     .kpi-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
-    /* CONTROLS & CUSTOM DROPDOWNS */
+    /* CONTROLS & DROPDOWNS */
     .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
-    .search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem; border-radius: 10px; outline: none; font-size: 0.85rem; transition: all 0.2s; flex: 1; min-width: 250px; }
+    .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 12px; opacity: 0.5; width: 16px; height: 16px; }
+    .search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem 0.7rem 2.4rem; border-radius: 10px; outline: none; font-size: 0.85rem; transition: all 0.2s; width: 100%; height: 38px; }
     .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
     
     .custom-dropdown { position: relative; min-width: 170px; font-size: 0.85rem; user-select: none; }
-    .dropdown-selected { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 0.7rem 2.2rem 0.7rem 1rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+    .dropdown-selected { height: 38px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 0 2.2rem 0 1rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
     .dropdown-selected:hover { background: var(--glass-highlight); }
     .dropdown-selected.active { border-color: var(--accent-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
     .dropdown-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); pointer-events: none; transition: transform 0.2s; }
@@ -98,7 +116,7 @@
     .dropdown-items div { padding: 0.7rem 1rem; cursor: pointer; color: var(--text-main); transition: background 0.2s; }
     .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); }
 
-    /* STICKY TABLE */
+    /* TABLE */
     .table-container { max-height: 65vh; overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
     th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; }
@@ -106,20 +124,21 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--table-hover); }
 
-    /* CLICK-TO-COPY */
-    .copyable { cursor: pointer; position: relative; transition: color 0.2s; display: inline-block; }
+    /* TYPOGRAPHY & BADGES */
+    .inline-icon { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; margin-right: 4px; vertical-align: text-bottom; }
+    
+    .copyable { cursor: pointer; position: relative; transition: color 0.2s; display: inline-flex; align-items: center; }
     .copyable:hover { color: var(--accent-primary) !important; text-decoration: underline; }
-    .copyable::after { content: "📋 Copy"; position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 8px; font-size: 0.65rem; background: var(--accent-primary); color: #fff; padding: 2px 6px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
-    .copyable:hover::after { opacity: 1; }
+    .copy-icon { width: 12px; height: 12px; margin-left: 6px; opacity: 0; transition: opacity 0.2s; stroke: var(--accent-primary); }
+    .copyable:hover .copy-icon { opacity: 1; }
 
-    /* BADGES & TYPOGRAPHY */
-    .badge { padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.3px; }
+    .badge { padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.3px; }
     .badge-normal { background: rgba(52, 211, 153, 0.1); color: var(--safe-color); border-color: rgba(52, 211, 153, 0.25); }
     .badge-anomaly { background: rgba(248, 113, 113, 0.1); color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3); box-shadow: 0 0 10px rgba(248, 113, 113, 0.1); }
     .badge-processing { background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); border-color: rgba(56, 189, 248, 0.25); }
     .badge-dismissed { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.3); text-decoration: line-through; }
     
-    .aging-badge { display: inline-flex; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: 700; }
+    .aging-badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: 700; }
     .aging-warning { background: rgba(251, 191, 36, 0.15); color: var(--warning-color); border: 1px solid rgba(251, 191, 36, 0.3); }
     .aging-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); }
 
@@ -134,7 +153,7 @@
     #toastContainer { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
     .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); color: var(--text-main); padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px); animation: toastIn 0.3s forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 8px; }
     @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
-    .icon-spin { animation: spin 1s infinite linear; }
+    .spin { animation: spin 1s infinite linear; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
@@ -147,7 +166,7 @@
     <!-- AUTH PANEL -->
     <div id="authPanel" class="auth-wrapper">
       <div class="auth-card">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 54px; height: 54px; color: var(--accent-primary); margin-bottom: 1rem;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
         <h2 style="font-size: 1.6rem; margin-bottom: 0.5rem; letter-spacing: -0.5px;">Executive Ticket Portal</h2>
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem;">Sign in with your authorized Mindmatrix account.</p>
         <div style="display: flex; justify-content: center;">
@@ -172,14 +191,28 @@
           </div>
           <div class="action-group">
             <span id="userGreeting" style="font-weight: 600; margin-right: 0.5rem; color: var(--text-muted); font-size: 0.85rem;"></span>
-            <button class="btn-outline btn-icon" onclick="exportToCSV()" title="Export CSV">📥</button>
-            <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
+            
+            <button class="btn-outline btn-icon" onclick="exportToCSV()" data-tooltip="Export to CSV">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
+            
+            <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn" data-tooltip="Toggle Theme">
+              <svg class="svg-icon" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            
             <button class="btn-outline" onclick="triggerSync(false)" id="refreshBtn">
-              <svg id="refreshIcon" style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 512 512"><path d="M440.65 12.57l4 82.77A247.16 247.16 0 0 0 255.83 8C134.73 8 33.91 94.92 12.29 209.82A12 12 0 0 0 24.09 224h58.11a12 12 0 0 0 11.82-10.16c16.32-88.64 93.39-153.24 184.94-153.24a186.2 186.2 0 0 1 129.2 46.29l-83.6 8.36A12 12 0 0 0 313.38 128h174.62a12 12 0 0 0 12-12V13.73a12 12 0 0 0-22.35-7.16zM487.91 288H429.8a12 12 0 0 0-11.82 10.16c-16.32 88.64-93.39 153.24-184.94 153.24a186.2 186.2 0 0 1-129.2-46.29l83.6-8.36A12 12 0 0 0 198.62 384H24a12 12 0 0 0-12 12v102.27a12 12 0 0 0 22.35 7.16l-4-82.77A247.16 247.16 0 0 0 256.17 504c121.1 0 221.92-86.92 243.54-201.82a12 12 0 0 0-11.8-14.18z"/></svg>
+              <svg id="refreshIcon" class="svg-icon" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
               Refresh Data
             </button>
-            <button class="btn-primary" onclick="triggerSync(true)" id="zohoBtn">☁️ Force Zoho Sync</button>
-            <button class="btn-danger btn-icon" onclick="logout()" title="Sign Out">✖</button>
+            
+            <button class="btn-primary" onclick="triggerSync(true)" id="zohoBtn">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg>
+              Force Zoho Sync
+            </button>
+            
+            <button class="btn-danger btn-icon" onclick="logout()" data-tooltip="Sign Out">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -209,15 +242,15 @@
         
         <!-- CONTROLS -->
         <div class="controls-bar">
-          <div style="position: relative; flex: 1; min-width: 250px;">
-            <span style="position: absolute; left: 12px; top: 9px; opacity: 0.5;">🔍</span>
-            <input type="text" id="searchInput" class="search-input" style="padding-left: 2.2rem; width: 100%;" placeholder="Search Subject, Client, Ticket #..." oninput="applyFilters()">
+          <div class="search-wrapper">
+            <svg class="search-icon svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search Subject, Client, Ticket #..." oninput="applyFilters()">
           </div>
           
           <!-- Custom Exec Dropdown -->
           <div class="custom-dropdown" id="dd-owner" data-value="ALL">
             <div class="dropdown-selected">All Executives
-              <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
             <div class="dropdown-items">
               <div data-value="ALL">All Executives</div>
@@ -234,7 +267,7 @@
           <!-- Custom Priority Dropdown -->
           <div class="custom-dropdown" id="dd-priority" data-value="ALL">
             <div class="dropdown-selected">All Priorities
-              <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
             <div class="dropdown-items">
               <div data-value="ALL">All Priorities</div>
@@ -248,7 +281,7 @@
           <!-- Custom Sort Dropdown -->
           <div class="custom-dropdown" id="dd-sort" data-value="date-new">
             <div class="dropdown-selected">Sort: Newest First
-              <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
             <div class="dropdown-items">
               <div data-value="date-new">Sort: Newest First</div>
@@ -292,13 +325,18 @@
     let currentAnomalyFilter = "ALL";
     let acknowledgedTickets = JSON.parse(localStorage.getItem('mm_acknowledged') || '[]');
 
+    const icons = {
+      moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>',
+      sun: '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'
+    };
+
     // ==========================================
     // 2. INITIALIZATION
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('mm_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
-      document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeIcon').innerHTML = savedTheme === 'dark' ? icons.moon : icons.sun;
 
       setupCustomDropdowns();
       
@@ -359,7 +397,7 @@
 
         options.forEach(opt => {
           opt.addEventListener('click', () => {
-            selected.innerHTML = `${opt.textContent} <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>`;
+            selected.innerHTML = `${opt.textContent} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
             dropdown.setAttribute('data-value', opt.getAttribute('data-value'));
             items.style.display = 'none';
             selected.classList.remove('active');
@@ -381,7 +419,7 @@
     }
 
     // ==========================================
-    // 4. DATA LOGIC
+    // 4. DATA LOGIC (WITH ERROR FALLBACKS)
     // ==========================================
     function triggerSync(forceZoho) {
       loadDashboardData(forceZoho);
@@ -407,9 +445,12 @@
     function loadDashboardData(forceRefresh) {
       showSkeletons();
       
-      const btn = forceRefresh ? document.getElementById('zohoBtn') : document.getElementById('refreshBtn');
+      const btnId = forceRefresh ? 'zohoBtn' : 'refreshBtn';
+      const btn = document.getElementById(btnId);
+      const iconId = forceRefresh ? '' : 'refreshIcon';
+      
       const originalText = btn.innerHTML;
-      btn.innerHTML = `<svg style="width:14px; height:14px; fill:currentColor;" class="icon-spin" viewBox="0 0 512 512"><path d="M440.65 12.57l4 82.77A247.16 247.16 0 0 0 255.83 8C134.73 8 33.91 94.92 12.29 209.82A12 12 0 0 0 24.09 224h58.11a12 12 0 0 0 11.82-10.16c16.32-88.64 93.39-153.24 184.94-153.24a186.2 186.2 0 0 1 129.2 46.29l-83.6 8.36A12 12 0 0 0 313.38 128h174.62a12 12 0 0 0 12-12V13.73a12 12 0 0 0-22.35-7.16zM487.91 288H429.8a12 12 0 0 0-11.82 10.16c-16.32 88.64-93.39 153.24-184.94 153.24a186.2 186.2 0 0 1-129.2-46.29l83.6-8.36A12 12 0 0 0 198.62 384H24a12 12 0 0 0-12 12v102.27a12 12 0 0 0 22.35 7.16l-4-82.77A247.16 247.16 0 0 0 256.17 504c121.1 0 221.92-86.92 243.54-201.82a12 12 0 0 0-11.8-14.18z"/></svg> Syncing...`;
+      btn.innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Syncing...`;
       btn.disabled = true;
 
       const token = localStorage.getItem('mm_ticket_session');
@@ -430,9 +471,21 @@
           showToast(forceRefresh ? "Zoho CRM Sync Complete." : "Sheet Data Refreshed.");
         } else if (res.error === "SESSION_EXPIRED") {
           logout();
+        } else {
+          throw new Error(res.message || "Backend error");
         }
       })
-      .catch(err => showToast("Error loading data."))
+      .catch(err => {
+        console.error(err);
+        showToast("Error loading data.");
+        // CLEARS SKELETONS IF FETCH FAILS
+        document.getElementById('ticketTableBody').innerHTML = `
+          <tr><td colspan="7" style="text-align:center; padding: 4rem;">
+            <svg class="svg-icon" style="width: 40px; height: 40px; color: var(--danger-color); margin-bottom:1rem;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><br>
+            <strong style="font-size: 1.1rem; color: var(--danger-color);">Connection Error</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Failed to fetch data from Google Apps Script.<br>Please ensure the Web App is deployed as <strong>"Execute as: Me"</strong> and <strong>"Who has access: Anyone"</strong>.</span>
+          </td></tr>`;
+      })
       .finally(() => {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -521,12 +574,13 @@
         const dMod = new Date(t.modifiedDate);
         const dStr = isNaN(dObj) ? "Unknown" : dObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         
-        // Days Aging Logic
+        // Days Aging SVG Badge
         let agingHtml = '';
         if (!isNaN(dMod)) {
            const daysIdle = Math.floor((Date.now() - dMod.getTime()) / (1000*60*60*24));
-           if (daysIdle >= 7) agingHtml = `<div class="aging-badge aging-danger">⏳ ${daysIdle} Days Idle</div>`;
-           else if (daysIdle >= 3) agingHtml = `<div class="aging-badge aging-warning">⏳ ${daysIdle} Days Idle</div>`;
+           const clockSvg = `<svg class="inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+           if (daysIdle >= 7) agingHtml = `<div class="aging-badge aging-danger">${clockSvg} ${daysIdle} Days Idle</div>`;
+           else if (daysIdle >= 3) agingHtml = `<div class="aging-badge aging-warning">${clockSvg} ${daysIdle} Days Idle</div>`;
         }
 
         let pColor = "var(--accent-primary)";
@@ -537,15 +591,16 @@
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
         const isDismissed = acknowledgedTickets.includes(t.id.toString());
         
+        // Dynamic SVG Status Badges
         let badgeHtml = '';
         if (t.aiSummary === "Pending AI") {
-            badgeHtml = `<span class="badge badge-processing"><svg class="icon-spin" style="width:12px; margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Analyzing</span>`;
+            badgeHtml = `<span class="badge badge-processing"><svg class="inline-icon spin" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Analyzing</span>`;
         } else if (isAnomaly && isDismissed) {
             badgeHtml = `<span class="badge badge-dismissed">Awaiting Fix</span>`;
         } else if (isAnomaly) {
-            badgeHtml = `<span class="badge badge-anomaly">⚠️ ${t.anomalyType || 'Flagged'}</span>`;
+            badgeHtml = `<span class="badge badge-anomaly"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ${t.anomalyType || 'Flagged'}</span>`;
         } else {
-            badgeHtml = `<span class="badge badge-normal">✅ Healthy</span>`;
+            badgeHtml = `<span class="badge badge-normal"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Healthy</span>`;
         }
 
         const displaySummary = (t.aiSummary === "Pending AI") ? "<em>AI is reviewing thread in background...</em>" : t.aiSummary;
@@ -553,19 +608,21 @@
         
         if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
             const btnText = isDismissed ? 'Restore' : 'Acknowledge';
-            const actionBtn = isAnomaly ? `<button class="btn-outline" style="padding:2px 6px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}')">${btnText}</button>` : '';
-            aiActionHtml = `<div class="ai-action-box"><span>💡 <strong>Action:</strong> ${t.suggestedAction}</span> ${actionBtn}</div>`;
+            const actionBtn = isAnomaly ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}')">${btnText}</button>` : '';
+            aiActionHtml = `<div class="ai-action-box"><span><svg class="inline-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path><line x1="9" y1="21" x2="15" y2="21"></line></svg> <strong>Action:</strong> ${t.suggestedAction}</span> ${actionBtn}</div>`;
         }
+
+        const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
-            <strong class="copyable" onclick="copyToCB('${t.ticketNumber}')" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}</strong><br>
+            <strong class="copyable" onclick="copyToCB('${t.ticketNumber}')" data-tooltip="Copy ID" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}${copySvg}</strong><br>
             <small style="color: var(--text-muted);">${dStr}</small><br>
             ${agingHtml}
           </td>
           <td>
-            <strong class="copyable" onclick="copyToCB('${t.clientName}')" style="color: var(--text-main);">${t.clientName}</strong><br>
+            <strong class="copyable" onclick="copyToCB('${t.clientName}')" data-tooltip="Copy Client" style="color: var(--text-main);">${t.clientName}${copySvg}</strong><br>
             <small style="color: var(--text-muted);">${t.module}</small>
           </td>
           <td>
@@ -583,7 +640,7 @@
             ${aiActionHtml}
           </td>
           <td style="text-align: right; vertical-align: middle;">
-            <a href="${t.url}" target="_blank" class="btn btn-outline" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">Open ↗</a>
+            <a href="${t.url}" target="_blank" class="btn btn-outline" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
           </td>
         `;
         tbody.appendChild(tr);
@@ -624,13 +681,14 @@
     function toggleTheme() {
       const nt = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', nt);
-      document.getElementById('themeBtn').textContent = nt === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeIcon').innerHTML = nt === 'dark' ? icons.moon : icons.sun;
       localStorage.setItem('mm_theme', nt);
     }
     function showToast(msg) {
       const tc = document.getElementById('toastContainer');
       const t = document.createElement('div');
-      t.className = 'toast'; t.innerHTML = `<span>ℹ️</span> <div>${msg}</div>`;
+      t.className = 'toast'; 
+      t.innerHTML = `<svg class="svg-icon" style="color:var(--accent-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> <div>${msg}</div>`;
       tc.appendChild(t);
       setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(50px)'; setTimeout(()=>t.remove(),300); }, 3000);
     }
