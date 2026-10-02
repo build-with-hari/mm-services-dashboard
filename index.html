@@ -461,7 +461,17 @@
         body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh }),
         redirect: 'follow'
       })
-      .then(res => res.json())
+      .then(async res => {
+        // DEBUGGER: Catch the raw text before trying to parse it as JSON
+        const rawText = await res.text();
+        console.log("🔍 RAW BACKEND RESPONSE:", rawText);
+        
+        try {
+          return JSON.parse(rawText);
+        } catch (e) {
+          throw new Error("Backend crashed and returned HTML instead of JSON. Check the browser console (F12) for the exact error text.");
+        }
+      })
       .then(res => {
         if (res.success) {
           rawTicketsData = res.data.tickets || [];
@@ -472,25 +482,26 @@
         } else if (res.error === "SESSION_EXPIRED") {
           logout();
         } else {
-          throw new Error(res.message || "Backend error");
+          throw new Error(res.message || "Backend logic error");
         }
       })
       .catch(err => {
-        console.error(err);
+        console.error("🔴 DASHBOARD ERROR:", err);
         showToast("Error loading data.");
-        // CLEARS SKELETONS IF FETCH FAILS
+        
+        // Print the exact error directly to the UI
         document.getElementById('ticketTableBody').innerHTML = `
           <tr><td colspan="7" style="text-align:center; padding: 4rem;">
             <svg class="svg-icon" style="width: 40px; height: 40px; color: var(--danger-color); margin-bottom:1rem;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><br>
-            <strong style="font-size: 1.1rem; color: var(--danger-color);">Connection Error</strong><br>
-            <span style="color: var(--text-muted); font-size: 0.9rem;">Failed to fetch data from Google Apps Script.<br>Please ensure the Web App is deployed as <strong>"Execute as: Me"</strong> and <strong>"Who has access: Anyone"</strong>.</span>
+            <strong style="font-size: 1.1rem; color: var(--danger-color);">Detailed Error Intercepted:</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.9rem;">${err.message}</span><br><br>
+            <span style="color: var(--text-muted); font-size: 0.85rem;">Press <strong>F12</strong> and check the "Console" tab to see the full raw response from Google.</span>
           </td></tr>`;
       })
       .finally(() => {
         btn.innerHTML = originalText;
         btn.disabled = false;
       });
-    }
 
     function toggleAcknowledge(ticketId) {
       const idx = acknowledgedTickets.indexOf(ticketId);
