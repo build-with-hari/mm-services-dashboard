@@ -5,14 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Executive AI Ticket Anomaly Portal</title>
   
-  <!-- Official Mindmatrix Favicon -->
   <link rel="icon" type="image/x-icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128">
-  
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
-    /* ENTERPRISE THEME VARIABLES */
     :root {
       --bg-color: #0b0f19;
       --glass-bg: rgba(20, 25, 40, 0.65);
@@ -28,6 +24,7 @@
       --card-bg: rgba(17, 24, 39, 0.75);
       --table-hover: rgba(255, 255, 255, 0.04);
       --scroll-thumb: rgba(255, 255, 255, 0.25);
+      --header-bg: rgba(15, 20, 32, 0.95);
     }
 
     [data-theme="light"] {
@@ -45,241 +42,240 @@
       --card-bg: rgba(255, 255, 255, 0.85);
       --table-hover: rgba(0, 0, 0, 0.03);
       --scroll-thumb: rgba(0, 0, 0, 0.25);
+      --header-bg: rgba(241, 245, 249, 0.95);
     }
 
-    /* GLOBAL RESET & TYPOGRAPHY */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; overflow-x: hidden; transition: background-color 0.4s ease; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
     
-    /* ANIMATED BACKGROUND BLOBS */
     .blob { position: fixed; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.5; animation: float 20s infinite ease-in-out; }
     .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(56, 189, 248, 0.15); animation-delay: 0s; }
     .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: rgba(129, 140, 248, 0.15); animation-delay: -5s; }
     @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(5%, 10%) scale(1.1); } 66% { transform: translate(-5%, -5%) scale(0.9); } }
 
-    .app-container { max-width: 1550px; margin: 0 auto; padding: 2rem; }
+    .app-container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
+    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
 
-    /* LIQUID GLASS COMPONENTS */
-    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; }
-
-    /* AUTHENTICATION UI */
+    /* AUTH UI */
     .auth-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
     .auth-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 3rem 2.5rem; border-radius: 24px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(20px); }
 
-    /* HEADER CONTROLS */
+    /* HEADER & BUTTONS */
     .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-    .brand-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.25rem; }
-    .brand-subtitle { color: var(--text-muted); font-size: 0.9rem; }
-    .action-group { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .brand-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.15rem; }
+    .brand-subtitle { color: var(--text-muted); font-size: 0.85rem; }
+    .action-group { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
     
-    button, .btn { cursor: pointer; border: none; padding: 0.65rem 1.25rem; border-radius: 12px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; outline: none; }
+    button, .btn { cursor: pointer; border: none; padding: 0.6rem 1.1rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; outline: none; }
     .btn-primary { background: var(--accent-primary); color: #ffffff; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25); }
     .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
     .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--glass-border); }
     .btn-outline:hover { background: var(--glass-highlight); }
-    .theme-toggle { padding: 0.65rem; border-radius: 50%; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; }
+    .btn-danger { color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.05); }
+    .btn-danger:hover { background: rgba(248, 113, 113, 0.1); }
+    .btn-icon { padding: 0.6rem; border-radius: 10px; width: 38px; height: 38px; display: flex; justify-content: center; align-items: center; }
 
-    /* KPI METRICS */
-    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
-    .kpi-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    .kpi-card:hover { transform: translateY(-4px); background: var(--glass-highlight); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    /* KPIs */
+    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .kpi-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.25s ease; backdrop-filter: blur(12px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .kpi-card:hover { transform: translateY(-4px); background: var(--glass-highlight); }
     .kpi-card.active { border-color: var(--accent-primary); box-shadow: 0 0 0 2px var(--accent-primary), 0 10px 25px rgba(56, 189, 248, 0.15); transform: translateY(-4px); }
-    .kpi-value { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; letter-spacing: -1px; }
-    .kpi-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 0.25rem 0; letter-spacing: -1px; }
+    .kpi-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
-    /* DATA CONTROLS (MODERNIZED) */
-    .controls-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
-    
-    .search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.8rem 1.25rem; border-radius: 12px; outline: none; font-size: 0.9rem; transition: all 0.2s; flex: 1; min-width: 250px; }
+    /* CONTROLS & CUSTOM DROPDOWNS */
+    .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+    .search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem; border-radius: 10px; outline: none; font-size: 0.85rem; transition: all 0.2s; flex: 1; min-width: 250px; }
     .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
     
-    /* Sleek Custom Select Dropdowns */
-    .select-wrapper { position: relative; min-width: 180px; }
-    .select-input { appearance: none; -webkit-appearance: none; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.8rem 2.5rem 0.8rem 1.25rem; border-radius: 12px; outline: none; font-size: 0.9rem; font-weight: 500; width: 100%; cursor: pointer; transition: all 0.2s; }
-    .select-input:hover { border-color: rgba(255, 255, 255, 0.3); background: var(--glass-highlight); }
-    .select-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
-    .select-input option { background: var(--bg-color); color: var(--text-main); font-weight: 500; }
-    .select-arrow { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; pointer-events: none; opacity: 0.7; }
+    .custom-dropdown { position: relative; min-width: 170px; font-size: 0.85rem; user-select: none; }
+    .dropdown-selected { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 0.7rem 2.2rem 0.7rem 1rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+    .dropdown-selected:hover { background: var(--glass-highlight); }
+    .dropdown-selected.active { border-color: var(--accent-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
+    .dropdown-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); pointer-events: none; transition: transform 0.2s; }
+    .dropdown-selected.active .dropdown-arrow { transform: translateY(-50%) rotate(180deg); }
+    .dropdown-items { position: absolute; top: 100%; left: 0; right: 0; background: var(--header-bg); border: 1px solid var(--glass-border); border-top: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 99; display: none; max-height: 250px; overflow-y: auto; backdrop-filter: blur(20px); }
+    .dropdown-items div { padding: 0.7rem 1rem; cursor: pointer; color: var(--text-main); transition: background 0.2s; }
+    .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); }
 
-    /* DATA TABLE */
-    .table-container { overflow-x: auto; border-radius: 16px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; padding-bottom: 1rem; }
+    /* STICKY TABLE */
+    .table-container { max-height: 65vh; overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
-    th { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.25rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; }
-    td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.9rem; transition: background-color 0.2s; }
-    tr { animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(10px); }
-    tr:nth-child(1) { animation-delay: 0.05s; } tr:nth-child(2) { animation-delay: 0.1s; } tr:nth-child(3) { animation-delay: 0.15s; } tr:nth-child(n+4) { animation-delay: 0.2s; }
+    th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; }
+    td { padding: 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: background-color 0.2s; background: transparent; }
+    tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--table-hover); }
-    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
-    /* BADGES & TYPOGRAPHY HELPERS */
-    .badge { padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.3px; }
+    /* CLICK-TO-COPY */
+    .copyable { cursor: pointer; position: relative; transition: color 0.2s; display: inline-block; }
+    .copyable:hover { color: var(--accent-primary) !important; text-decoration: underline; }
+    .copyable::after { content: "📋 Copy"; position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 8px; font-size: 0.65rem; background: var(--accent-primary); color: #fff; padding: 2px 6px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
+    .copyable:hover::after { opacity: 1; }
+
+    /* BADGES & TYPOGRAPHY */
+    .badge { padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.3px; }
     .badge-normal { background: rgba(52, 211, 153, 0.1); color: var(--safe-color); border-color: rgba(52, 211, 153, 0.25); }
     .badge-anomaly { background: rgba(248, 113, 113, 0.1); color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3); box-shadow: 0 0 10px rgba(248, 113, 113, 0.1); }
     .badge-processing { background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); border-color: rgba(56, 189, 248, 0.25); }
+    .badge-dismissed { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.3); text-decoration: line-through; }
     
-    /* NEW AI ACTION SUGGESTION */
-    .ai-action-box { margin-top: 10px; background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent-primary); padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; }
-    
-    /* LOADING SPINNER */
-    .loader-container { text-align: center; padding: 5rem 0; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-    .spinner { width: 44px; height: 44px; border: 4px solid var(--glass-border); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s infinite cubic-bezier(0.6, 0.2, 0.4, 0.8); }
-    .icon-spin { display: inline-block; animation: spin 1s infinite linear; }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .aging-badge { display: inline-flex; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: 700; }
+    .aging-warning { background: rgba(251, 191, 36, 0.15); color: var(--warning-color); border: 1px solid rgba(251, 191, 36, 0.3); }
+    .aging-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); }
 
-    /* TOAST NOTIFICATIONS */
+    .ai-action-box { margin-top: 8px; background: rgba(56, 189, 248, 0.05); border-left: 2px solid var(--accent-primary); padding: 8px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+    /* SKELETON LOADER */
+    .skeleton-row { animation: pulse 1.5s infinite ease-in-out; }
+    .skeleton-box { height: 16px; background: var(--glass-border); border-radius: 4px; margin-bottom: 8px; }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+    /* TOAST */
     #toastContainer { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { background: var(--card-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); color: var(--text-main); padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-size: 0.9rem; font-weight: 600; opacity: 0; transform: translateX(50px); animation: toastIn 0.3s forwards; display: flex; align-items: center; gap: 10px; border-left: 4px solid var(--accent-primary); }
+    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); color: var(--text-main); padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px); animation: toastIn 0.3s forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 8px; }
     @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
+    .icon-spin { animation: spin 1s infinite linear; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-
-  <!-- Background Ambience -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
-  
   <div id="toastContainer"></div>
 
   <div class="app-container">
-
-    <!-- 1. AUTHENTICATION PANEL -->
+    <!-- AUTH PANEL -->
     <div id="authPanel" class="auth-wrapper">
       <div class="auth-card">
         <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
         <h2 style="font-size: 1.6rem; margin-bottom: 0.5rem; letter-spacing: -0.5px;">Executive Ticket Portal</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem; line-height: 1.5;">Sign in with your authorized Mindmatrix account to access the AI-driven anomaly dashboard.</p>
-        
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem;">Sign in with your authorized Mindmatrix account.</p>
         <div style="display: flex; justify-content: center;">
-          <div id="g_id_onload"
-               data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com"
-               data-context="signin"
-               data-ux_mode="popup"
-               data-callback="handleGoogleLogin"
-               data-auto_prompt="false">
-          </div>
+          <div id="g_id_onload" data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com" data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
           <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-size="large"></div>
         </div>
-        
-        <p id="authError" style="color: var(--danger-color); font-weight: 600; margin-top: 1.5rem; display: none; font-size: 0.85rem; padding: 10px; background: rgba(248, 113, 113, 0.1); border-radius: 8px; border: 1px solid rgba(248, 113, 113, 0.2);"></p>
+        <p id="authError" style="color: var(--danger-color); font-weight: 600; margin-top: 1.5rem; display: none; font-size: 0.85rem; padding: 10px; background: rgba(248, 113, 113, 0.1); border-radius: 8px;"></p>
       </div>
     </div>
 
-    <!-- 2. MAIN DASHBOARD PANEL -->
+    <!-- DASHBOARD PANEL -->
     <div id="dashboardPanel" style="display: none;">
-      
       <!-- HEADER -->
-      <div class="glass-panel" style="padding: 1.25rem 2rem;">
+      <div class="glass-panel" style="padding: 1rem 1.5rem;">
         <div class="header-bar">
-          <div style="display: flex; align-items: center; gap: 1.25rem;">
-            <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 44px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 38px; border-radius: 8px;">
             <div>
-              <div class="brand-title">AI Ticket Anomaly Portal</div>
-              <div class="brand-subtitle">Monitoring 7 Executive Workloads & Communication Health</div>
+              <div class="brand-title">AI Ticket Portal</div>
+              <div class="brand-subtitle">Automated Executive Tracking</div>
             </div>
           </div>
           <div class="action-group">
-            <span id="userGreeting" style="font-weight: 600; margin-right: 0.5rem; color: var(--text-muted); font-size: 0.9rem;"></span>
-            <button class="btn-outline theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
-            <button class="btn-primary" onclick="triggerManualSync()" id="syncBtn">
-              <svg id="syncIcon" style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 512 512"><path d="M440.65 12.57l4 82.77A247.16 247.16 0 0 0 255.83 8C134.73 8 33.91 94.92 12.29 209.82A12 12 0 0 0 24.09 224h58.11a12 12 0 0 0 11.82-10.16c16.32-88.64 93.39-153.24 184.94-153.24a186.2 186.2 0 0 1 129.2 46.29l-83.6 8.36A12 12 0 0 0 313.38 128h174.62a12 12 0 0 0 12-12V13.73a12 12 0 0 0-22.35-7.16zM487.91 288H429.8a12 12 0 0 0-11.82 10.16c-16.32 88.64-93.39 153.24-184.94 153.24a186.2 186.2 0 0 1-129.2-46.29l83.6-8.36A12 12 0 0 0 198.62 384H24a12 12 0 0 0-12 12v102.27a12 12 0 0 0 22.35 7.16l-4-82.77A247.16 247.16 0 0 0 256.17 504c121.1 0 221.92-86.92 243.54-201.82a12 12 0 0 0-11.8-14.18z"/></svg>
+            <span id="userGreeting" style="font-weight: 600; margin-right: 0.5rem; color: var(--text-muted); font-size: 0.85rem;"></span>
+            <button class="btn-outline btn-icon" onclick="exportToCSV()" title="Export CSV">📥</button>
+            <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
+            <button class="btn-outline" onclick="triggerSync(false)" id="refreshBtn">
+              <svg id="refreshIcon" style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 512 512"><path d="M440.65 12.57l4 82.77A247.16 247.16 0 0 0 255.83 8C134.73 8 33.91 94.92 12.29 209.82A12 12 0 0 0 24.09 224h58.11a12 12 0 0 0 11.82-10.16c16.32-88.64 93.39-153.24 184.94-153.24a186.2 186.2 0 0 1 129.2 46.29l-83.6 8.36A12 12 0 0 0 313.38 128h174.62a12 12 0 0 0 12-12V13.73a12 12 0 0 0-22.35-7.16zM487.91 288H429.8a12 12 0 0 0-11.82 10.16c-16.32 88.64-93.39 153.24-184.94 153.24a186.2 186.2 0 0 1-129.2-46.29l83.6-8.36A12 12 0 0 0 198.62 384H24a12 12 0 0 0-12 12v102.27a12 12 0 0 0 22.35 7.16l-4-82.77A247.16 247.16 0 0 0 256.17 504c121.1 0 221.92-86.92 243.54-201.82a12 12 0 0 0-11.8-14.18z"/></svg>
               Refresh Data
             </button>
-            <button class="btn-outline" style="color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3);" onclick="logout()">Sign Out</button>
+            <button class="btn-primary" onclick="triggerSync(true)" id="zohoBtn">☁️ Force Zoho Sync</button>
+            <button class="btn-danger btn-icon" onclick="logout()" title="Sign Out">✖</button>
           </div>
         </div>
       </div>
 
-      <!-- KPI METRICS -->
+      <!-- KPIs -->
       <div class="kpi-container">
         <div class="kpi-card active" id="kpi-all" onclick="setAnomalyFilter('ALL')">
           <div class="kpi-label">Monitored Tickets</div>
           <div class="kpi-value" id="kpiTotal">0</div>
         </div>
         <div class="kpi-card" id="kpi-anomalies" onclick="setAnomalyFilter('ANOMALIES')">
-          <div class="kpi-label">AI Anomalies Flagged</div>
+          <div class="kpi-label">Active Anomalies</div>
           <div class="kpi-value" style="color: var(--danger-color);" id="kpiAnomalies">0</div>
         </div>
         <div class="kpi-card" id="kpi-healthy" onclick="setAnomalyFilter('HEALTHY')">
-          <div class="kpi-label">Healthy & Processing</div>
+          <div class="kpi-label">Healthy / Pending</div>
           <div class="kpi-value" style="color: var(--safe-color);" id="kpiHealthy">0</div>
         </div>
         <div class="kpi-card" style="cursor: default;">
-          <div class="kpi-label">Database Last Synced</div>
-          <div class="kpi-value" style="font-size: 1.25rem; color: var(--text-muted); font-weight: 600; padding-top: 1rem;" id="kpiLastSync">--</div>
+          <div class="kpi-label">Last Database Sync</div>
+          <div class="kpi-value" style="font-size: 1.1rem; color: var(--text-muted); font-weight: 600; padding-top: 1rem;" id="kpiLastSync">--</div>
         </div>
       </div>
 
       <!-- DATA SECTION -->
       <div class="glass-panel" style="padding: 1.5rem;">
         
-        <!-- MODERN FILTERS -->
+        <!-- CONTROLS -->
         <div class="controls-bar">
-          <div style="position: relative; flex: 1; min-width: 280px;">
-            <span style="position: absolute; left: 14px; top: 12px; opacity: 0.5;">🔍</span>
-            <input type="text" id="searchInput" class="search-input" style="padding-left: 2.5rem; width: 100%;" placeholder="Search Subject, Ticket #, Client, Owner..." oninput="applyFilters()">
+          <div style="position: relative; flex: 1; min-width: 250px;">
+            <span style="position: absolute; left: 12px; top: 9px; opacity: 0.5;">🔍</span>
+            <input type="text" id="searchInput" class="search-input" style="padding-left: 2.2rem; width: 100%;" placeholder="Search Subject, Client, Ticket #..." oninput="applyFilters()">
           </div>
           
-          <!-- Dropdown: Owner -->
-          <div class="select-wrapper">
-            <select id="ownerFilter" class="select-input" onchange="applyFilters()">
-              <option value="ALL">All Executives</option>
-              <option value="Amit Badoni">Amit Badoni</option>
-              <option value="Hari Iyer">Hari Iyer</option>
-              <option value="Rahul Kamble">Rahul Kamble</option>
-              <option value="Shashank Singh">Shashank Singh</option>
-              <option value="Gagandeep Kaur">Gagandeep Kaur</option>
-              <option value="Jashandeep Kaur">Jashandeep Kaur</option>
-              <option value="Nikunj Singla">Nikunj Singla</option>
-            </select>
-            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          <!-- Custom Exec Dropdown -->
+          <div class="custom-dropdown" id="dd-owner" data-value="ALL">
+            <div class="dropdown-selected">All Executives
+              <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="dropdown-items">
+              <div data-value="ALL">All Executives</div>
+              <div data-value="Amit Badoni">Amit Badoni</div>
+              <div data-value="Hari Iyer">Hari Iyer</div>
+              <div data-value="Rahul Kamble">Rahul Kamble</div>
+              <div data-value="Shashank Singh">Shashank Singh</div>
+              <div data-value="Gagandeep Kaur">Gagandeep Kaur</div>
+              <div data-value="Jashandeep Kaur">Jashandeep Kaur</div>
+              <div data-value="Nikunj Singla">Nikunj Singla</div>
+            </div>
           </div>
 
-          <!-- Dropdown: Priority -->
-          <div class="select-wrapper">
-            <select id="priorityFilter" class="select-input" onchange="applyFilters()">
-              <option value="ALL">All Priorities</option>
-              <option value="Urgent">Urgent Only</option>
-              <option value="High">High Priority</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low / Normal</option>
-            </select>
-            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          <!-- Custom Priority Dropdown -->
+          <div class="custom-dropdown" id="dd-priority" data-value="ALL">
+            <div class="dropdown-selected">All Priorities
+              <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="dropdown-items">
+              <div data-value="ALL">All Priorities</div>
+              <div data-value="Urgent">Urgent Only</div>
+              <div data-value="High">High Priority</div>
+              <div data-value="Medium">Medium</div>
+              <div data-value="Low">Low / Normal</div>
+            </div>
           </div>
 
-          <!-- Dropdown: Advanced Sorting -->
-          <div class="select-wrapper">
-            <select id="sortFilter" class="select-input" onchange="applyFilters()">
-              <option value="date-new">Sort: Newest First</option>
-              <option value="date-old">Sort: Oldest First</option>
-              <option value="priority">Sort: Highest Priority</option>
-              <option value="status">Sort: Ticket Status</option>
-            </select>
-            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          <!-- Custom Sort Dropdown -->
+          <div class="custom-dropdown" id="dd-sort" data-value="date-new">
+            <div class="dropdown-selected">Sort: Newest First
+              <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="dropdown-items">
+              <div data-value="date-new">Sort: Newest First</div>
+              <div data-value="date-old">Sort: Oldest First</div>
+              <div data-value="priority">Sort: Highest Priority</div>
+              <div data-value="status">Sort: Ticket Status</div>
+            </div>
           </div>
-        </div>
-
-        <!-- LOADER -->
-        <div id="tableLoader" class="loader-container">
-          <div class="spinner"></div>
-          <div style="font-weight: 600; font-size: 1.1rem;" id="loaderText">Accessing Secure Database...</div>
-          <div style="font-size: 0.85rem; max-width: 400px; margin-top: 5px;">Fetching the latest ticket evaluations from the Apps Script backend.</div>
         </div>
 
         <!-- TABLE -->
-        <div class="table-container" id="tableWrapper" style="display: none;">
+        <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th style="width: 12%;">Date & Ticket #</th>
                 <th style="width: 15%;">Client & Module</th>
                 <th style="width: 12%;">Owner & Priority</th>
-                <th style="width: 12%;">Classification</th>
-                <th style="width: 12%;">AI Anomaly Status</th>
-                <th style="width: 30%;">Subject, Executive Summary & Action</th>
-                <th style="width: 7%; text-align: right;">Link</th>
+                <th style="width: 10%;">Classification</th>
+                <th style="width: 12%;">AI Status</th>
+                <th style="width: 33%;">Subject & Executive Summary</th>
+                <th style="width: 6%; text-align: right;">Link</th>
               </tr>
             </thead>
-            <tbody id="ticketTableBody"></tbody>
+            <tbody id="ticketTableBody">
+              <!-- Skeletons render here initially -->
+            </tbody>
           </table>
         </div>
       </div>
@@ -290,26 +286,28 @@
     // ==========================================
     // 1. CONFIGURATION
     // ==========================================
-    // REPLACE WITH YOUR LATEST "NEW DEPLOYMENT" URL
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
     
     let rawTicketsData = [];
     let currentAnomalyFilter = "ALL";
+    let acknowledgedTickets = JSON.parse(localStorage.getItem('mm_acknowledged') || '[]');
 
     // ==========================================
-    // 2. INITIALIZATION & SESSION MANAGEMENT
+    // 2. INITIALIZATION
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('mm_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
 
+      setupCustomDropdowns();
+      
       const storedSession = localStorage.getItem('mm_ticket_session');
       const expiresAt = localStorage.getItem('mm_ticket_session_expiry');
       const userName = localStorage.getItem('mm_ticket_user_name');
 
       if (storedSession && expiresAt && new Date().getTime() < parseInt(expiresAt, 10)) {
-        if (userName) document.getElementById('userGreeting').textContent = "Hi, " + userName;
+        if (userName) document.getElementById('userGreeting').textContent = "Hi, " + userName.split(' ')[0];
         showDashboardUI();
         loadDashboardData(false);
       } else {
@@ -320,7 +318,6 @@
 
     function handleGoogleLogin(response) {
       document.getElementById('authError').style.display = 'none';
-      
       fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -333,38 +330,87 @@
           localStorage.setItem('mm_ticket_session', data.sessionToken);
           localStorage.setItem('mm_ticket_session_expiry', data.expiresAt);
           localStorage.setItem('mm_ticket_user_name', data.userName);
-          document.getElementById('userGreeting').textContent = "Hi, " + data.userName;
-          
-          showToast("Successfully authenticated!");
+          document.getElementById('userGreeting').textContent = "Hi, " + data.userName.split(' ')[0];
+          showToast("Authenticated safely.");
           showDashboardUI();
           loadDashboardData(false);
         } else {
-          showAuthError(data.message || "Authentication failed.");
+          document.getElementById('authError').innerHTML = data.message;
+          document.getElementById('authError').style.display = 'block';
         }
-      })
-      .catch(err => {
-        console.error(err);
-        showAuthError("Network error: Could not connect to Apps Script backend. Ensure your Deployment URL is up to date.");
+      }).catch(() => showToast("Network Error connecting to server."));
+    }
+
+    // ==========================================
+    // 3. UI DROPDOWN LOGIC
+    // ==========================================
+    function setupCustomDropdowns() {
+      document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+        const selected = dropdown.querySelector('.dropdown-selected');
+        const items = dropdown.querySelector('.dropdown-items');
+        const options = items.querySelectorAll('div');
+
+        selected.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeAllDropdowns(dropdown);
+          items.style.display = items.style.display === 'block' ? 'none' : 'block';
+          selected.classList.toggle('active');
+        });
+
+        options.forEach(opt => {
+          opt.addEventListener('click', () => {
+            selected.innerHTML = `${opt.textContent} <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>`;
+            dropdown.setAttribute('data-value', opt.getAttribute('data-value'));
+            items.style.display = 'none';
+            selected.classList.remove('active');
+            applyFilters();
+          });
+        });
+      });
+
+      document.addEventListener('click', closeAllDropdowns);
+    }
+
+    function closeAllDropdowns(except = null) {
+      document.querySelectorAll('.custom-dropdown').forEach(dd => {
+        if (dd !== except) {
+          dd.querySelector('.dropdown-items').style.display = 'none';
+          dd.querySelector('.dropdown-selected').classList.remove('active');
+        }
       });
     }
 
     // ==========================================
-    // 3. DATA FETCHING & UI RENDER
+    // 4. DATA LOGIC
     // ==========================================
-    function loadDashboardData(forceRefresh) {
-      document.getElementById('tableLoader').style.display = 'flex';
-      document.getElementById('tableWrapper').style.display = 'none';
-      
-      const syncIcon = document.getElementById('syncIcon');
-      const syncBtn = document.getElementById('syncBtn');
-      
-      if (forceRefresh) {
-        document.getElementById('loaderText').textContent = "Pulling latest data from Zoho & Google Sheets...";
-        syncBtn.disabled = true;
-        syncIcon.classList.add('icon-spin');
-      } else {
-        document.getElementById('loaderText').textContent = "Accessing Secure Database...";
+    function triggerSync(forceZoho) {
+      loadDashboardData(forceZoho);
+    }
+
+    function showSkeletons() {
+      const tbody = document.getElementById('ticketTableBody');
+      tbody.innerHTML = '';
+      for(let i=0; i<6; i++) {
+        tbody.innerHTML += `
+          <tr class="skeleton-row">
+            <td><div class="skeleton-box" style="width: 60%"></div><div class="skeleton-box" style="width: 80%"></div></td>
+            <td><div class="skeleton-box" style="width: 70%"></div><div class="skeleton-box" style="width: 50%"></div></td>
+            <td><div class="skeleton-box" style="width: 90%"></div></td>
+            <td><div class="skeleton-box" style="width: 80%"></div></td>
+            <td><div class="skeleton-box" style="width: 100%; height: 24px; border-radius: 12px;"></div></td>
+            <td><div class="skeleton-box" style="width: 90%"></div><div class="skeleton-box" style="width: 100%"></div><div class="skeleton-box" style="width: 70%"></div></td>
+            <td><div class="skeleton-box" style="width: 100%; height: 28px;"></div></td>
+          </tr>`;
       }
+    }
+
+    function loadDashboardData(forceRefresh) {
+      showSkeletons();
+      
+      const btn = forceRefresh ? document.getElementById('zohoBtn') : document.getElementById('refreshBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<svg style="width:14px; height:14px; fill:currentColor;" class="icon-spin" viewBox="0 0 512 512"><path d="M440.65 12.57l4 82.77A247.16 247.16 0 0 0 255.83 8C134.73 8 33.91 94.92 12.29 209.82A12 12 0 0 0 24.09 224h58.11a12 12 0 0 0 11.82-10.16c16.32-88.64 93.39-153.24 184.94-153.24a186.2 186.2 0 0 1 129.2 46.29l-83.6 8.36A12 12 0 0 0 313.38 128h174.62a12 12 0 0 0 12-12V13.73a12 12 0 0 0-22.35-7.16zM487.91 288H429.8a12 12 0 0 0-11.82 10.16c-16.32 88.64-93.39 153.24-184.94 153.24a186.2 186.2 0 0 1-129.2-46.29l83.6-8.36A12 12 0 0 0 198.62 384H24a12 12 0 0 0-12 12v102.27a12 12 0 0 0 22.35 7.16l-4-82.77A247.16 247.16 0 0 0 256.17 504c121.1 0 221.92-86.92 243.54-201.82a12 12 0 0 0-11.8-14.18z"/></svg> Syncing...`;
+      btn.disabled = true;
 
       const token = localStorage.getItem('mm_ticket_session');
 
@@ -379,185 +425,165 @@
         if (res.success) {
           rawTicketsData = res.data.tickets || [];
           document.getElementById('kpiLastSync').textContent = res.data.lastRefreshed;
-          
           updateKPIs();
           applyFilters();
-          
-          if (forceRefresh) showToast("Dashboard synchronized successfully.");
+          showToast(forceRefresh ? "Zoho CRM Sync Complete." : "Sheet Data Refreshed.");
         } else if (res.error === "SESSION_EXPIRED") {
-          showToast("Session expired. Please log in again.");
           logout();
-        } else {
-          showToast("Error: " + res.message);
         }
       })
-      .catch(err => {
-        console.error("Fetch error:", err);
-        showToast("Error loading data. Did you update the Web App Deployment URL?");
-      })
+      .catch(err => showToast("Error loading data."))
       .finally(() => {
-        document.getElementById('tableLoader').style.display = 'none';
-        document.getElementById('tableWrapper').style.display = 'block';
-        syncBtn.disabled = false;
-        syncIcon.classList.remove('icon-spin');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       });
     }
 
-    function triggerManualSync() {
-      loadDashboardData(true);
+    function toggleAcknowledge(ticketId) {
+      const idx = acknowledgedTickets.indexOf(ticketId);
+      if (idx > -1) acknowledgedTickets.splice(idx, 1);
+      else acknowledgedTickets.push(ticketId);
+      
+      localStorage.setItem('mm_acknowledged', JSON.stringify(acknowledgedTickets));
+      updateKPIs();
+      applyFilters();
     }
 
     function updateKPIs() {
       const total = rawTicketsData.length;
-      // Consider an anomaly ONLY if hasAnomaly is strictly true (ignore 'Pending AI')
-      const anomalies = rawTicketsData.filter(t => t.hasAnomaly === true || t.hasAnomaly === "true").length;
-      const healthy = total - anomalies;
-
+      const anomalies = rawTicketsData.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(t.id.toString())).length;
       document.getElementById('kpiTotal').textContent = total;
       document.getElementById('kpiAnomalies').textContent = anomalies;
-      document.getElementById('kpiHealthy').textContent = healthy;
+      document.getElementById('kpiHealthy').textContent = total - anomalies;
     }
 
-    function setAnomalyFilter(filterType) {
-      currentAnomalyFilter = filterType;
+    function setAnomalyFilter(filter) {
+      currentAnomalyFilter = filter;
       document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
-      if(filterType === 'ALL') document.getElementById('kpi-all').classList.add('active');
-      if(filterType === 'ANOMALIES') document.getElementById('kpi-anomalies').classList.add('active');
-      if(filterType === 'HEALTHY') document.getElementById('kpi-healthy').classList.add('active');
+      document.getElementById('kpi-' + filter.toLowerCase()).classList.add('active');
       applyFilters();
-    }
-
-    function sortDataArray(dataArr) {
-      const sortValue = document.getElementById('sortFilter').value;
-      
-      return dataArr.sort((a, b) => {
-        if (sortValue === 'date-new') {
-          return new Date(b.createdDate) - new Date(a.createdDate);
-        } 
-        else if (sortValue === 'date-old') {
-          return new Date(a.createdDate) - new Date(b.createdDate);
-        } 
-        else if (sortValue === 'priority') {
-          const pValues = { 'urgent': 4, 'high': 3, 'medium': 2, 'low': 1, 'normal': 0 };
-          const pA = pValues[(a.priority || '').toLowerCase()] || 0;
-          const pB = pValues[(b.priority || '').toLowerCase()] || 0;
-          return pB - pA;
-        }
-        else if (sortValue === 'status') {
-          return (a.status || '').localeCompare(b.status || '');
-        }
-        return 0;
-      });
     }
 
     function applyFilters() {
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const owner = document.getElementById('ownerFilter').value;
-      const priority = document.getElementById('priorityFilter').value;
+      const owner = document.getElementById('dd-owner').getAttribute('data-value');
+      const priority = document.getElementById('dd-priority').getAttribute('data-value');
+      const sortVal = document.getElementById('dd-sort').getAttribute('data-value');
       
       const tbody = document.getElementById('ticketTableBody');
       tbody.innerHTML = '';
 
       let filtered = rawTicketsData.filter(t => {
-        const safeSubject = (t.subject || "").toLowerCase();
-        const safeTicketNum = (t.ticketNumber || "").toString().toLowerCase();
+        const safeSubj = (t.subject || "").toLowerCase();
+        const safeNum = (t.ticketNumber || "").toString().toLowerCase();
         const safeClient = (t.clientName || "").toLowerCase();
         const safeOwner = (t.owner || "").toLowerCase();
-        const safeModule = (t.module || "").toLowerCase();
-        const safePriority = (t.priority || "").toLowerCase();
+        const safePri = (t.priority || "").toLowerCase();
         
-        const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
+        const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
+        const isDismissed = acknowledgedTickets.includes(t.id.toString());
+        const isActivelyFlagged = isAnomalyRaw && !isDismissed;
 
-        const matchesQuery = !query || 
-          safeSubject.includes(query) || 
-          safeTicketNum.includes(query) || 
-          safeClient.includes(query) || 
-          safeOwner.includes(query) || 
-          safeModule.includes(query);
-
-        const matchesOwner = owner === 'ALL' || t.owner === owner;
+        const mQuery = !query || safeSubj.includes(query) || safeNum.includes(query) || safeClient.includes(query);
+        const mOwner = owner === 'ALL' || t.owner === owner;
         
-        // Priority grouping logic
-        let matchesPriority = true;
-        if (priority === 'Urgent') matchesPriority = safePriority === 'urgent';
-        if (priority === 'High') matchesPriority = safePriority === 'high';
-        if (priority === 'Medium') matchesPriority = safePriority === 'medium';
-        if (priority === 'Low') matchesPriority = ['low', 'normal'].includes(safePriority);
+        let mPri = true;
+        if (priority === 'Urgent') mPri = safePri === 'urgent';
+        if (priority === 'High') mPri = safePri === 'high';
+        if (priority === 'Medium') mPri = safePri === 'medium';
+        if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
         
-        let matchesAnomaly = true;
-        if (currentAnomalyFilter === 'ANOMALIES') matchesAnomaly = isAnomaly;
-        if (currentAnomalyFilter === 'HEALTHY') matchesAnomaly = !isAnomaly;
+        let mAnom = true;
+        if (currentAnomalyFilter === 'ANOMALIES') mAnom = isActivelyFlagged;
+        if (currentAnomalyFilter === 'HEALTHY') mAnom = !isActivelyFlagged;
 
-        return matchesQuery && matchesOwner && matchesPriority && matchesAnomaly;
+        return mQuery && mOwner && mPri && mAnom;
       });
 
-      // Apply the selected sorting logic
-      filtered = sortDataArray(filtered);
+      filtered.sort((a, b) => {
+        if (sortVal === 'date-new') return new Date(b.createdDate) - new Date(a.createdDate);
+        if (sortVal === 'date-old') return new Date(a.createdDate) - new Date(b.createdDate);
+        if (sortVal === 'priority') {
+          const p = {'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
+          return (p[(b.priority||'').toLowerCase()]||0) - (p[(a.priority||'').toLowerCase()]||0);
+        }
+        if (sortVal === 'status') return (a.status||'').localeCompare(b.status||'');
+        return 0;
+      });
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted); font-size: 1.1rem;">No matching tickets found based on current filters.</td></tr>`;
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">No records match criteria.</td></tr>`;
         return;
       }
 
       filtered.forEach(t => {
-        const dateObj = new Date(t.createdDate);
-        const dateStr = isNaN(dateObj) ? "Unknown" : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        const dObj = new Date(t.createdDate);
+        const dMod = new Date(t.modifiedDate);
+        const dStr = isNaN(dObj) ? "Unknown" : dObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         
-        // Priority color coding
+        // Days Aging Logic
+        let agingHtml = '';
+        if (!isNaN(dMod)) {
+           const daysIdle = Math.floor((Date.now() - dMod.getTime()) / (1000*60*60*24));
+           if (daysIdle >= 7) agingHtml = `<div class="aging-badge aging-danger">⏳ ${daysIdle} Days Idle</div>`;
+           else if (daysIdle >= 3) agingHtml = `<div class="aging-badge aging-warning">⏳ ${daysIdle} Days Idle</div>`;
+        }
+
         let pColor = "var(--accent-primary)";
         const pLower = (t.priority || "").toLowerCase();
         if (pLower === 'high') pColor = "var(--warning-color)";
         if (pLower === 'urgent') pColor = "var(--danger-color)";
 
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
+        const isDismissed = acknowledgedTickets.includes(t.id.toString());
         
-        // Smart Badge Rendering
         let badgeHtml = '';
-        if (t.aiSummary === "Pending AI" || t.anomalyType === "Pending AI") {
-            badgeHtml = `<span class="badge badge-processing"><svg style="width:12px; animation: spin 2s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Analyzing...</span>`;
+        if (t.aiSummary === "Pending AI") {
+            badgeHtml = `<span class="badge badge-processing"><svg class="icon-spin" style="width:12px; margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Analyzing</span>`;
+        } else if (isAnomaly && isDismissed) {
+            badgeHtml = `<span class="badge badge-dismissed">Awaiting Fix</span>`;
         } else if (isAnomaly) {
             badgeHtml = `<span class="badge badge-anomaly">⚠️ ${t.anomalyType || 'Flagged'}</span>`;
         } else {
             badgeHtml = `<span class="badge badge-normal">✅ Healthy</span>`;
         }
-          
-        // Smart Summary Rendering
-        const displaySummary = (t.aiSummary === "Pending AI") 
-            ? "<em>AI is currently reviewing this thread in the background...</em>" 
-            : t.aiSummary || 'No summary available.';
 
-        const aiActionHtml = t.suggestedAction && t.suggestedAction !== "Waiting for AI sync." 
-            ? `<div class="ai-action-box">💡 <strong>Next Step:</strong> ${t.suggestedAction}</div>` 
-            : '';
+        const displaySummary = (t.aiSummary === "Pending AI") ? "<em>AI is reviewing thread in background...</em>" : t.aiSummary;
+        let aiActionHtml = '';
+        
+        if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
+            const btnText = isDismissed ? 'Restore' : 'Acknowledge';
+            const actionBtn = isAnomaly ? `<button class="btn-outline" style="padding:2px 6px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}')">${btnText}</button>` : '';
+            aiActionHtml = `<div class="ai-action-box"><span>💡 <strong>Action:</strong> ${t.suggestedAction}</span> ${actionBtn}</div>`;
+        }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
-            <strong style="color: var(--text-main); font-size: 1.05rem;">#${t.ticketNumber}</strong><br>
-            <small style="color: var(--text-muted); font-weight: 500;">${dateStr}</small>
+            <strong class="copyable" onclick="copyToCB('${t.ticketNumber}')" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}</strong><br>
+            <small style="color: var(--text-muted);">${dStr}</small><br>
+            ${agingHtml}
           </td>
           <td>
-            <strong style="color: var(--text-main);">${t.clientName}</strong><br>
-            <small style="color: var(--text-muted); font-weight: 500;">${t.module}</small>
+            <strong class="copyable" onclick="copyToCB('${t.clientName}')" style="color: var(--text-main);">${t.clientName}</strong><br>
+            <small style="color: var(--text-muted);">${t.module}</small>
           </td>
           <td>
-            <span style="font-weight: 600; color: var(--text-main);">${t.owner}</span><br>
-            <small style="color: ${pColor}; font-weight: 700; letter-spacing: 0.5px;">● ${(t.priority || 'Normal').toUpperCase()}</small>
+            <span style="font-weight: 600;">${t.owner}</span><br>
+            <small style="color: ${pColor}; font-weight: 700;">● ${(t.priority || 'Normal').toUpperCase()}</small>
           </td>
           <td>
             <small style="color: var(--text-main); font-weight: 600; background: var(--glass-highlight); padding: 4px 8px; border-radius: 4px;">${t.status}</small><br>
-            <small style="color: var(--text-muted); font-weight: 500; margin-top: 4px; display: inline-block;">${t.classification}</small>
+            <small style="color: var(--text-muted); margin-top: 4px; display: inline-block;">${t.classification}</small>
           </td>
-          <td>
-            ${badgeHtml}
-          </td>
-          <td style="line-height: 1.5;">
-            <strong style="color: var(--text-main); display: block; margin-bottom: 0.4rem; font-size: 0.95rem;">${t.subject}</strong>
+          <td>${badgeHtml}</td>
+          <td style="line-height: 1.4;">
+            <strong style="display: block; margin-bottom: 0.3rem;">${t.subject}</strong>
             <span style="color: var(--text-muted); font-size: 0.85rem;">${displaySummary}</span>
             ${aiActionHtml}
           </td>
           <td style="text-align: right; vertical-align: middle;">
-            <a href="${t.url}" target="_blank" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--glass-border);">Open ↗</a>
+            <a href="${t.url}" target="_blank" class="btn btn-outline" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">Open ↗</a>
           </td>
         `;
         tbody.appendChild(tr);
@@ -565,53 +591,48 @@
     }
 
     // ==========================================
-    // 4. UTILITIES & UI HELPERS
+    // 5. HELPER FUNCTIONS
     // ==========================================
-    function showDashboardUI() {
-      document.getElementById('authPanel').style.display = 'none';
-      document.getElementById('dashboardPanel').style.display = 'block';
+    function copyToCB(text) {
+      navigator.clipboard.writeText(text);
+      showToast(`Copied "${text}" to clipboard.`);
     }
 
-    function showAuthUI() {
-      document.getElementById('authPanel').style.display = 'flex';
-      document.getElementById('dashboardPanel').style.display = 'none';
-    }
-
-    function showAuthError(msg) {
-      const errEl = document.getElementById('authError');
-      errEl.innerHTML = `<strong>Authentication Failed:</strong><br>${msg}`;
-      errEl.style.display = 'block';
-    }
-
-    function logout() {
-      localStorage.removeItem('mm_ticket_session');
-      localStorage.removeItem('mm_ticket_session_expiry');
-      localStorage.removeItem('mm_ticket_user_name');
-      showAuthUI();
-      showToast("You have been signed out safely.");
-    }
-
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      document.getElementById('themeBtn').textContent = newTheme === 'dark' ? '🌙' : '☀️';
-      localStorage.setItem('mm_theme', newTheme);
-    }
-
-    function showToast(message) {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.innerHTML = `<span>ℹ️</span> <div>${message}</div>`;
-      container.appendChild(toast);
+    function exportToCSV() {
+      if (!rawTicketsData.length) return showToast("No data to export.");
+      let csv = 'Ticket #,Created Date,Client,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
       
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(50px)';
-        toast.style.transition = 'all 0.3s';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+      rawTicketsData.forEach(t => {
+        const row = [
+          t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`,
+          t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url
+        ];
+        csv += row.join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `Ticket_Anomalies_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      showToast("CSV Export Started.");
+    }
+
+    function showDashboardUI() { document.getElementById('authPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; }
+    function showAuthUI() { document.getElementById('authPanel').style.display = 'flex'; document.getElementById('dashboardPanel').style.display = 'none'; }
+    function logout() { localStorage.clear(); showAuthUI(); showToast("Signed out."); }
+    function toggleTheme() {
+      const nt = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nt);
+      document.getElementById('themeBtn').textContent = nt === 'dark' ? '🌙' : '☀️';
+      localStorage.setItem('mm_theme', nt);
+    }
+    function showToast(msg) {
+      const tc = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast'; t.innerHTML = `<span>ℹ️</span> <div>${msg}</div>`;
+      tc.appendChild(t);
+      setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(50px)'; setTimeout(()=>t.remove(),300); }, 3000);
     }
   </script>
 </body>
