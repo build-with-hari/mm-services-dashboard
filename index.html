@@ -117,7 +117,7 @@
     .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); }
 
     /* TABLE */
-    .table-container { max-height: 65vh; overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
+    .table-container { max-height: 80vh; overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
     th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; }
     td { padding: 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: background-color 0.2s; background: transparent; }
@@ -136,6 +136,7 @@
     .badge-normal { background: rgba(52, 211, 153, 0.1); color: var(--safe-color); border-color: rgba(52, 211, 153, 0.25); }
     .badge-anomaly { background: rgba(248, 113, 113, 0.1); color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3); box-shadow: 0 0 10px rgba(248, 113, 113, 0.1); }
     .badge-processing { background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); border-color: rgba(56, 189, 248, 0.25); }
+    .badge-warning { background: rgba(251, 191, 36, 0.1); color: var(--warning-color); border-color: rgba(251, 191, 36, 0.3); }
     .badge-dismissed { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.3); text-decoration: line-through; }
     
     .aging-badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: 700; }
@@ -163,7 +164,6 @@
   <div id="toastContainer"></div>
 
   <div class="app-container">
-    <!-- AUTH PANEL -->
     <div id="authPanel" class="auth-wrapper">
       <div class="auth-card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 54px; height: 54px; color: var(--accent-primary); margin-bottom: 1rem;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -177,9 +177,7 @@
       </div>
     </div>
 
-    <!-- DASHBOARD PANEL -->
     <div id="dashboardPanel" style="display: none;">
-      <!-- HEADER -->
       <div class="glass-panel" style="padding: 1rem 1.5rem;">
         <div class="header-bar">
           <div style="display: flex; align-items: center; gap: 1rem;">
@@ -191,25 +189,20 @@
           </div>
           <div class="action-group">
             <span id="userGreeting" style="font-weight: 600; margin-right: 0.5rem; color: var(--text-muted); font-size: 0.85rem;"></span>
-            
             <button class="btn-outline btn-icon" onclick="exportToCSV()" data-tooltip="Export to CSV">
               <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
-            
             <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn" data-tooltip="Toggle Theme">
               <svg class="svg-icon" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
-            
             <button class="btn-outline" onclick="triggerSync(false)" id="refreshBtn">
               <svg id="refreshIcon" class="svg-icon" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
               Refresh Data
             </button>
-            
             <button class="btn-primary" onclick="triggerSync(true)" id="zohoBtn">
               <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg>
               Force Zoho Sync
             </button>
-            
             <button class="btn-danger btn-icon" onclick="logout()" data-tooltip="Sign Out">
               <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
@@ -217,7 +210,6 @@
         </div>
       </div>
 
-      <!-- KPIs -->
       <div class="kpi-container">
         <div class="kpi-card active" id="kpi-all" onclick="setAnomalyFilter('ALL')">
           <div class="kpi-label">Monitored Tickets</div>
@@ -237,10 +229,7 @@
         </div>
       </div>
 
-      <!-- DATA SECTION -->
       <div class="glass-panel" style="padding: 1.5rem;">
-        
-        <!-- CONTROLS -->
         <div class="controls-bar">
           <div class="search-wrapper">
             <svg class="search-icon svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -248,9 +237,7 @@
           </div>
           
           <div class="custom-dropdown" id="dd-owner" data-value="ALL">
-            <div class="dropdown-selected">All Executives
-              <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
+            <div class="dropdown-selected">All Executives <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
             <div class="dropdown-items">
               <div data-value="ALL">All Executives</div>
               <div data-value="Amit Badoni">Amit Badoni</div>
@@ -264,9 +251,7 @@
           </div>
 
           <div class="custom-dropdown" id="dd-priority" data-value="ALL">
-            <div class="dropdown-selected">All Priorities
-              <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
+            <div class="dropdown-selected">All Priorities <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
             <div class="dropdown-items">
               <div data-value="ALL">All Priorities</div>
               <div data-value="Urgent">Urgent Only</div>
@@ -277,9 +262,7 @@
           </div>
 
           <div class="custom-dropdown" id="dd-sort" data-value="date-new">
-            <div class="dropdown-selected">Sort: Newest First
-              <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
+            <div class="dropdown-selected">Sort: Newest First <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
             <div class="dropdown-items">
               <div data-value="date-new">Sort: Newest First</div>
               <div data-value="date-old">Sort: Oldest First</div>
@@ -289,17 +272,17 @@
           </div>
         </div>
 
-        <!-- TABLE -->
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th style="width: 12%;">Date & Ticket #</th>
-                <th style="width: 15%;">Client & Module</th>
+                <th style="width: 12%;">Client</th>
                 <th style="width: 12%;">Owner & Priority</th>
-                <th style="width: 10%;">Classification</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 12%;">Module & Class</th>
                 <th style="width: 12%;">AI Status</th>
-                <th style="width: 33%;">Subject & Executive Summary</th>
+                <th style="width: 24%;">Subject & Executive Summary</th>
                 <th style="width: 6%; text-align: right;">Link</th>
               </tr>
             </thead>
@@ -311,15 +294,10 @@
   </div>
 
   <script>
-    // ==========================================
-    // 1. CONFIGURATION
-    // ==========================================
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
     
     let rawTicketsData = [];
     let currentAnomalyFilter = "ALL";
-    
-    // SAFE PARSING: Prevents UI from crashing if LocalStorage gets corrupted
     let acknowledgedTickets = [];
     try {
       acknowledgedTickets = JSON.parse(localStorage.getItem('mm_acknowledged') || '[]');
@@ -333,9 +311,6 @@
       sun: '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'
     };
 
-    // ==========================================
-    // 2. INITIALIZATION
-    // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('mm_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
@@ -357,12 +332,8 @@
       }
     });
 
-    // ==========================================
-    // 3. AUTHENTICATION & LOGIN (Cleaned)
-    // ==========================================
     function handleGoogleLogin(response) {
       document.getElementById('authError').style.display = 'none';
-      
       fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -376,18 +347,13 @@
           localStorage.setItem('mm_ticket_session_expiry', data.expiresAt);
           localStorage.setItem('mm_ticket_user_name', data.userName);
           document.getElementById('userGreeting').textContent = "Hi, " + data.userName.split(' ')[0];
-          
           showToast("Successfully authenticated!");
           showDashboardUI();
           loadDashboardData(false);
         } else {
           showAuthError(data.message || "Authentication failed.");
         }
-      })
-      .catch(err => {
-        console.error("Auth fetch error:", err);
-        showAuthError("Network error: Could not connect to Apps Script backend.");
-      });
+      }).catch(err => showAuthError("Network error connecting to Apps Script."));
     }
 
     function showAuthError(msg) {
@@ -396,9 +362,6 @@
       errEl.style.display = 'block';
     }
 
-    // ==========================================
-    // 4. UI DROPDOWN LOGIC
-    // ==========================================
     function setupCustomDropdowns() {
       document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
         const selected = dropdown.querySelector('.dropdown-selected');
@@ -422,7 +385,6 @@
           });
         });
       });
-
       document.addEventListener('click', closeAllDropdowns);
     }
 
@@ -435,12 +397,7 @@
       });
     }
 
-    // ==========================================
-    // 5. DATA FETCHING (Exactly matching the old working code)
-    // ==========================================
-    function triggerSync(forceZoho) {
-      loadDashboardData(forceZoho);
-    }
+    function triggerSync(forceZoho) { loadDashboardData(forceZoho); }
 
     function showSkeletons() {
       const tbody = document.getElementById('ticketTableBody');
@@ -449,19 +406,19 @@
         tbody.innerHTML += `
           <tr class="skeleton-row">
             <td><div class="skeleton-box" style="width: 60%"></div><div class="skeleton-box" style="width: 80%"></div></td>
-            <td><div class="skeleton-box" style="width: 70%"></div><div class="skeleton-box" style="width: 50%"></div></td>
+            <td><div class="skeleton-box" style="width: 90%"></div></td>
             <td><div class="skeleton-box" style="width: 90%"></div></td>
             <td><div class="skeleton-box" style="width: 80%"></div></td>
             <td><div class="skeleton-box" style="width: 100%; height: 24px; border-radius: 12px;"></div></td>
-            <td><div class="skeleton-box" style="width: 90%"></div><div class="skeleton-box" style="width: 100%"></div><div class="skeleton-box" style="width: 70%"></div></td>
+            <td><div class="skeleton-box" style="width: 90%"></div><div class="skeleton-box" style="width: 100%"></div></td>
             <td><div class="skeleton-box" style="width: 100%; height: 28px;"></div></td>
+            <td></td>
           </tr>`;
       }
     }
 
     function loadDashboardData(forceRefresh) {
       showSkeletons();
-      
       const btnId = forceRefresh ? 'zohoBtn' : 'refreshBtn';
       const btn = document.getElementById(btnId);
       const originalText = btn.innerHTML;
@@ -479,26 +436,22 @@
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          // SAFE CHECK: Filters out undefined or empty rows from Google Sheets
           rawTicketsData = (res.data.tickets || []).filter(t => t && t.id);
           document.getElementById('kpiLastSync').textContent = res.data.lastRefreshed || "--";
-          
           updateKPIs();
           applyFilters();
-          
           if (forceRefresh) showToast("Dashboard synchronized successfully.");
         } else if (res.error === "SESSION_EXPIRED") {
           showToast("Session expired. Please log in again.");
           logout();
         } else {
           showToast("Error: " + res.message);
-          document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to load data.</td></tr>`;
+          document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to load data.</td></tr>`;
         }
       })
       .catch(err => {
-        console.error("Fetch error:", err);
         showToast("Error loading data. Check console for details.");
-        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to retrieve data.</td></tr>`;
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to retrieve data.</td></tr>`;
       })
       .finally(() => {
         btn.innerHTML = originalText;
@@ -506,15 +459,11 @@
       });
     }
 
-    // ==========================================
-    // 6. DASHBOARD LOGIC (FILTERS & RENDER)
-    // ==========================================
     function toggleAcknowledge(ticketId) {
       const idStr = String(ticketId);
       const idx = acknowledgedTickets.indexOf(idStr);
       if (idx > -1) acknowledgedTickets.splice(idx, 1);
       else acknowledgedTickets.push(idStr);
-      
       localStorage.setItem('mm_acknowledged', JSON.stringify(acknowledgedTickets));
       updateKPIs();
       applyFilters();
@@ -540,7 +489,6 @@
       const owner = document.getElementById('dd-owner').getAttribute('data-value');
       const priority = document.getElementById('dd-priority').getAttribute('data-value');
       const sortVal = document.getElementById('dd-sort').getAttribute('data-value');
-      
       const tbody = document.getElementById('ticketTableBody');
       tbody.innerHTML = '';
 
@@ -583,7 +531,7 @@
       });
 
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 4rem; color: var(--text-muted);">No records match criteria.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">No records match criteria.</td></tr>`;
         return;
       }
 
@@ -607,10 +555,13 @@
 
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
         const isDismissed = acknowledgedTickets.includes(String(t.id));
+        const isOverloaded = (t.anomalyType === "API Overloaded" || (t.aiSummary || "").includes("free-tier"));
         
         let badgeHtml = '';
         if (t.aiSummary === "Pending AI") {
             badgeHtml = `<span class="badge badge-processing"><svg class="inline-icon spin" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Analyzing</span>`;
+        } else if (isOverloaded) {
+            badgeHtml = `<span class="badge badge-warning"><svg class="inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Overloaded</span>`;
         } else if (isAnomaly && isDismissed) {
             badgeHtml = `<span class="badge badge-dismissed">Awaiting Fix</span>`;
         } else if (isAnomaly) {
@@ -638,16 +589,18 @@
             ${agingHtml}
           </td>
           <td>
-            <strong class="copyable" onclick="copyToCB('${t.clientName}')" data-tooltip="Copy Client" style="color: var(--text-main);">${t.clientName}${copySvg}</strong><br>
-            <small style="color: var(--text-muted);">${t.module}</small>
+            <strong class="copyable" onclick="copyToCB('${t.clientName}')" data-tooltip="Copy Client" style="color: var(--text-main);">${t.clientName}${copySvg}</strong>
           </td>
           <td>
             <span style="font-weight: 600;">${t.owner}</span><br>
             <small style="color: ${pColor}; font-weight: 700;">● ${(t.priority || 'Normal').toUpperCase()}</small>
           </td>
           <td>
-            <small style="color: var(--text-main); font-weight: 600; background: var(--glass-highlight); padding: 4px 8px; border-radius: 4px;">${t.status}</small><br>
-            <small style="color: var(--text-muted); margin-top: 4px; display: inline-block;">${t.classification}</small>
+            <span style="font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">${t.status}</span>
+          </td>
+          <td>
+            <small style="color: var(--text-main); font-weight: 600; display: block;">${t.classification}</small>
+            <small style="color: var(--text-muted); margin-top: 4px; display: inline-block;">${t.module}</small>
           </td>
           <td>${badgeHtml}</td>
           <td style="line-height: 1.4;">
@@ -663,9 +616,6 @@
       });
     }
 
-    // ==========================================
-    // 7. UTILITIES
-    // ==========================================
     function copyToCB(text) {
       navigator.clipboard.writeText(text);
       showToast(`Copied "${text}" to clipboard.`);
@@ -674,15 +624,10 @@
     function exportToCSV() {
       if (!rawTicketsData.length) return showToast("No data to export.");
       let csv = 'Ticket #,Created Date,Client,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
-      
       rawTicketsData.forEach(t => {
-        const row = [
-          t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`,
-          t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url
-        ];
+        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url ];
         csv += row.join(',') + '\n';
       });
-
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
