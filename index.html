@@ -25,7 +25,7 @@
       --card-bg: rgba(17, 24, 39, 0.75);
       --table-hover: rgba(255, 255, 255, 0.04);
       --scroll-thumb: rgba(255, 255, 255, 0.25);
-      --header-bg: rgba(15, 20, 32, 0.95);
+      --header-bg: rgba(15, 20, 32, 0.85);
     }
 
     [data-theme="light"] {
@@ -43,118 +43,154 @@
       --card-bg: rgba(255, 255, 255, 0.85);
       --table-hover: rgba(0, 0, 0, 0.03);
       --scroll-thumb: rgba(0, 0, 0, 0.25);
-      --header-bg: rgba(241, 245, 249, 0.95);
+      --header-bg: rgba(241, 245, 249, 0.85);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; overflow-x: hidden; transition: background-color 0.4s ease; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; overflow-x: hidden; transition: background-color 0.5s ease; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
     
-    .blob { position: fixed; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.5; animation: float 20s infinite ease-in-out; }
-    .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(56, 189, 248, 0.15); animation-delay: 0s; }
+    /* ANIMATED BACKGROUND BLOBS */
+    .blob { position: fixed; border-radius: 50%; filter: blur(100px); z-index: -1; opacity: 0.6; animation: float 20s infinite ease-in-out; transition: all 0.5s ease; }
+    .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(56, 189, 248, 0.2); animation-delay: 0s; }
     .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: rgba(129, 140, 248, 0.15); animation-delay: -5s; }
     @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(5%, 10%) scale(1.1); } 66% { transform: translate(-5%, -5%) scale(0.9); } }
 
-    .app-container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
-    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+    /* GLOBAL ANIMATIONS */
+    @keyframes fadeInBlur {
+      from { opacity: 0; filter: blur(15px); transform: translateY(15px); }
+      to { opacity: 1; filter: blur(0); transform: translateY(0); }
+    }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); filter: blur(5px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+
+    .app-container { max-width: 1650px; margin: 0 auto; padding: 1.5rem; animation: fadeInBlur 0.6s ease-out forwards; }
+    
+    /* LIQUID GLASS PANELS */
+    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); transition: all 0.4s ease; }
+    .glass-panel:hover { box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); border-color: rgba(255, 255, 255, 0.2); }
 
     /* AUTH UI */
     .auth-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
-    .auth-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 3rem 2.5rem; border-radius: 24px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(20px); }
+    .auth-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 3rem 2.5rem; border-radius: 24px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(30px); transition: transform 0.3s ease; }
+    .auth-card:hover { transform: translateY(-5px); }
 
     /* MODERN TOOLTIPS */
     [data-tooltip] { position: relative; }
     [data-tooltip]::before {
-      content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-      background: var(--text-main); color: var(--bg-color); padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; white-space: nowrap;
-      opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 100; font-weight: 600; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(5px);
+      background: var(--text-main); color: var(--bg-color); padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; white-space: nowrap;
+      opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; font-weight: 600; pointer-events: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); filter: blur(2px);
     }
     [data-tooltip]::after {
-      content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-      border-width: 4px; border-style: solid; border-color: var(--text-main) transparent transparent transparent;
-      opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 100; pointer-events: none;
+      content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(5px);
+      border-width: 5px; border-style: solid; border-color: var(--text-main) transparent transparent transparent;
+      opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; pointer-events: none;
     }
-    [data-tooltip]:hover::before, [data-tooltip]:hover::after { opacity: 1; visibility: visible; }
+    [data-tooltip]:hover::before, [data-tooltip]:hover::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); filter: blur(0); }
 
     /* HEADER & BUTTONS */
     .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-    .brand-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.15rem; }
-    .brand-subtitle { color: var(--text-muted); font-size: 0.85rem; }
-    .action-group { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+    .brand-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.15rem; background: linear-gradient(90deg, var(--text-main), var(--accent-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-subtitle { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
+    .action-group { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
     
-    button, .btn { cursor: pointer; border: none; padding: 0 1.1rem; height: 38px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; outline: none; }
-    .btn-primary { background: var(--accent-primary); color: #ffffff; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25); }
-    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
-    .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--glass-border); }
-    .btn-outline:hover { background: var(--glass-highlight); }
-    .btn-danger { color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.05); }
-    .btn-danger:hover { background: rgba(248, 113, 113, 0.1); }
-    .btn-icon { padding: 0; width: 38px; justify-content: center; }
-    .svg-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .sync-badge { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); color: var(--accent-primary); padding: 0.4rem 0.8rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-right: 0.5rem; transition: all 0.3s ease; backdrop-filter: blur(10px); }
+    .sync-badge:hover { background: rgba(56, 189, 248, 0.15); transform: translateY(-1px); }
 
-    /* KPIs */
-    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .kpi-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.25s ease; backdrop-filter: blur(12px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    .kpi-card:hover { transform: translateY(-4px); background: var(--glass-highlight); }
-    .kpi-card.active { border-color: var(--accent-primary); box-shadow: 0 0 0 2px var(--accent-primary), 0 10px 25px rgba(56, 189, 248, 0.15); transform: translateY(-4px); }
-    .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 0.25rem 0; letter-spacing: -1px; }
-    .kpi-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    button, .btn { cursor: pointer; border: none; padding: 0 1.25rem; height: 40px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; outline: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover)); color: #ffffff; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
+    .btn-primary:hover { box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4); transform: translateY(-2px) scale(1.02); }
+    .btn-outline { background: var(--glass-highlight); color: var(--text-main); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-primary); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .btn-danger { color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.05); }
+    .btn-danger:hover { background: rgba(248, 113, 113, 0.15); border-color: var(--danger-color); transform: translateY(-2px); }
+    .btn-icon { padding: 0; width: 40px; justify-content: center; }
+    .svg-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: all 0.3s ease; }
+
+    /* STAGGERED KPIs */
+    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .kpi-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(20px); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; overflow: hidden; animation: fadeSlideUp 0.6s ease backwards; }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s ease; }
+    
+    /* Animation Delays for Tiles */
+    .kpi-card:nth-child(1) { animation-delay: 0.05s; } .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+    .kpi-card:nth-child(3) { animation-delay: 0.15s; } .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+    .kpi-card:nth-child(5) { animation-delay: 0.25s; } .kpi-card:nth-child(6) { animation-delay: 0.30s; }
+    .kpi-card:nth-child(7) { animation-delay: 0.35s; } .kpi-card:nth-child(8) { animation-delay: 0.40s; }
+
+    .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: rgba(255,255,255,0.2); }
+    .kpi-card:hover::before { opacity: 1; }
+    .kpi-card.active { border-color: var(--accent-primary); box-shadow: 0 0 0 2px var(--accent-primary), 0 12px 30px rgba(56, 189, 248, 0.15); transform: translateY(-5px); }
+    .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 0.25rem 0; letter-spacing: -1px; transition: color 0.3s ease; }
+    .kpi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; }
 
     /* CONTROLS & DROPDOWNS */
     .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
     .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; }
-    .search-icon { position: absolute; left: 12px; opacity: 0.5; width: 16px; height: 16px; }
-    .search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem 0.7rem 2.4rem; border-radius: 10px; outline: none; font-size: 0.85rem; transition: all 0.2s; width: 100%; height: 38px; }
-    .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+    .search-icon { position: absolute; left: 14px; opacity: 0.5; width: 16px; height: 16px; transition: opacity 0.3s ease; }
+    .search-input { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem 0.7rem 2.6rem; border-radius: 12px; outline: none; font-size: 0.85rem; transition: all 0.3s ease; width: 100%; height: 42px; backdrop-filter: blur(10px); }
+    .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--glass-bg); }
+    .search-input:focus + .search-icon { opacity: 1; stroke: var(--accent-primary); }
     
-    .custom-dropdown { position: relative; min-width: 170px; font-size: 0.85rem; user-select: none; }
-    .dropdown-selected { height: 38px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 0 2.2rem 0 1rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
-    .dropdown-selected:hover { background: var(--glass-highlight); }
-    .dropdown-selected.active { border-color: var(--accent-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
-    .dropdown-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); pointer-events: none; transition: transform 0.2s; }
-    .dropdown-selected.active .dropdown-arrow { transform: translateY(-50%) rotate(180deg); }
-    .dropdown-items { position: absolute; top: 100%; left: 0; right: 0; background: var(--header-bg); border: 1px solid var(--glass-border); border-top: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 99; display: none; max-height: 250px; overflow-y: auto; backdrop-filter: blur(20px); }
-    .dropdown-items div { padding: 0.7rem 1rem; cursor: pointer; color: var(--text-main); transition: background 0.2s; }
-    .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); }
+    .custom-dropdown { position: relative; min-width: 175px; font-size: 0.85rem; user-select: none; }
+    .dropdown-selected { height: 42px; background: var(--glass-highlight); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0 2.2rem 0 1.2rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; backdrop-filter: blur(10px); }
+    .dropdown-selected:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
+    .dropdown-selected.active { border-color: var(--accent-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); background: var(--glass-bg); }
+    .dropdown-arrow { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); pointer-events: none; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .dropdown-selected.active .dropdown-arrow { transform: translateY(-50%) rotate(180deg); stroke: var(--accent-primary); }
+    .dropdown-items { position: absolute; top: 100%; left: 0; right: 0; background: var(--header-bg); border: 1px solid var(--glass-border); border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); z-index: 99; display: none; max-height: 280px; overflow-y: auto; backdrop-filter: blur(30px); animation: fadeSlideUp 0.2s ease forwards; }
+    .dropdown-items div { padding: 0.8rem 1.2rem; cursor: pointer; color: var(--text-main); transition: all 0.2s ease; border-bottom: 1px solid rgba(255,255,255,0.02); }
+    .dropdown-items div:last-child { border-bottom: none; }
+    .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); padding-left: 1.5rem; }
 
     /* TABLE */
-    .table-container { max-height: 80vh; overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
+    .table-container { max-height: 80vh; overflow-y: auto; overflow-x: auto; border-radius: 16px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.1); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
-    th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; }
-    td { padding: 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: background-color 0.2s; background: transparent; }
+    th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: all 0.3s ease; background: transparent; }
     tr:last-child td { border-bottom: none; }
+    tr { transition: transform 0.2s ease, background-color 0.2s ease; }
     tr:hover td { background: var(--table-hover); }
+    
+    /* Row entry animation */
+    tr.rendered-row { animation: fadeSlideUp 0.4s ease backwards; }
+    tr.rendered-row:nth-child(1) { animation-delay: 0.05s; } tr.rendered-row:nth-child(2) { animation-delay: 0.08s; }
+    tr.rendered-row:nth-child(3) { animation-delay: 0.11s; } tr.rendered-row:nth-child(n+4) { animation-delay: 0.14s; }
 
     /* TYPOGRAPHY & BADGES */
-    .inline-icon { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; margin-right: 4px; vertical-align: text-bottom; }
+    .inline-icon { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; margin-right: 5px; vertical-align: text-bottom; }
     
-    .copyable { cursor: pointer; position: relative; transition: color 0.2s; display: inline-flex; align-items: center; }
+    .copyable { cursor: pointer; position: relative; transition: color 0.3s ease; display: inline-flex; align-items: center; }
     .copyable:hover { color: var(--accent-primary) !important; text-decoration: underline; }
-    .copy-icon { width: 12px; height: 12px; margin-left: 6px; opacity: 0; transition: opacity 0.2s; stroke: var(--accent-primary); }
-    .copyable:hover .copy-icon { opacity: 1; }
+    .copy-icon { width: 13px; height: 13px; margin-left: 6px; opacity: 0; transition: all 0.3s ease; stroke: var(--accent-primary); transform: translateX(-5px); }
+    .copyable:hover .copy-icon { opacity: 1; transform: translateX(0); }
 
-    .badge { padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.3px; }
+    .badge { padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.3px; transition: all 0.3s ease; }
     .badge-normal { background: rgba(52, 211, 153, 0.1); color: var(--safe-color); border-color: rgba(52, 211, 153, 0.25); }
-    .badge-anomaly { background: rgba(248, 113, 113, 0.1); color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3); box-shadow: 0 0 10px rgba(248, 113, 113, 0.1); }
+    .badge-anomaly { background: rgba(248, 113, 113, 0.1); color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3); box-shadow: 0 0 15px rgba(248, 113, 113, 0.15); }
     .badge-processing { background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); border-color: rgba(56, 189, 248, 0.25); }
     .badge-warning { background: rgba(251, 191, 36, 0.1); color: var(--warning-color); border-color: rgba(251, 191, 36, 0.3); }
     .badge-dismissed { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.3); text-decoration: line-through; }
     
-    .aging-badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: 700; }
+    .aging-badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; margin-top: 6px; font-weight: 700; }
     .aging-warning { background: rgba(251, 191, 36, 0.15); color: var(--warning-color); border: 1px solid rgba(251, 191, 36, 0.3); }
     .aging-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); }
 
-    .ai-action-box { margin-top: 8px; background: rgba(56, 189, 248, 0.05); border-left: 2px solid var(--accent-primary); padding: 8px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ai-action-box { margin-top: 10px; background: rgba(56, 189, 248, 0.05); border-left: 3px solid var(--accent-primary); padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: all 0.3s ease; }
+    .ai-action-box:hover { background: rgba(56, 189, 248, 0.08); }
 
     /* SKELETON LOADER */
     .skeleton-row { animation: pulse 1.5s infinite ease-in-out; }
-    .skeleton-box { height: 16px; background: var(--glass-border); border-radius: 4px; margin-bottom: 8px; }
-    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    .skeleton-box { height: 16px; background: var(--glass-border); border-radius: 6px; margin-bottom: 8px; }
+    @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
 
     /* TOAST */
-    #toastContainer { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); color: var(--text-main); padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px); animation: toastIn 0.3s forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 8px; }
-    @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
-    .spin { animation: spin 1s infinite linear; }
+    #toastContainer { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 10px; }
+    @keyframes toastIn { to { opacity: 1; transform: translateX(0) scale(1); } }
+    .spin { animation: spin 1.2s infinite cubic-bezier(0.5, 0.1, 0.4, 0.9); }
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
@@ -178,30 +214,32 @@
     </div>
 
     <div id="dashboardPanel" style="display: none;">
-      <div class="glass-panel" style="padding: 1rem 1.5rem;">
+      <div class="glass-panel" style="padding: 1.25rem 2rem;">
         <div class="header-bar">
-          <div style="display: flex; align-items: center; gap: 1rem;">
-            <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 38px; border-radius: 8px;">
+          <div style="display: flex; align-items: center; gap: 1.25rem;">
+            <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 42px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <div>
               <div class="brand-title">AI Ticket Portal</div>
               <div class="brand-subtitle">Automated Executive Tracking</div>
             </div>
           </div>
           <div class="action-group">
-            <span id="userGreeting" style="font-weight: 600; margin-right: 0.5rem; color: var(--text-muted); font-size: 0.85rem;"></span>
-            <button class="btn-outline btn-icon" onclick="exportToCSV()" data-tooltip="Export to CSV">
+            <span id="kpiLastSync" class="sync-badge" data-tooltip="Last database fetch">
+              <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> --
+            </span>
+            <span id="userGreeting" style="font-weight: 600; margin-right: 0.5rem; color: var(--text-muted); font-size: 0.9rem;"></span>
+            
+            <button class="btn-outline btn-icon" onclick="exportToCSV()" data-tooltip="Export Visible to CSV">
               <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
             <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn" data-tooltip="Toggle Theme">
               <svg class="svg-icon" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
             <button class="btn-outline" onclick="triggerSync(false)" id="refreshBtn">
-              <svg id="refreshIcon" class="svg-icon" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-              Refresh Data
+              <svg id="refreshIcon" class="svg-icon" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Refresh Data
             </button>
             <button class="btn-primary" onclick="triggerSync(true)" id="zohoBtn">
-              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg>
-              Force Zoho Sync
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Force Zoho Sync
             </button>
             <button class="btn-danger btn-icon" onclick="logout()" data-tooltip="Sign Out">
               <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -210,22 +248,41 @@
         </div>
       </div>
 
+      <!-- ALL 8 KPIs -->
       <div class="kpi-container">
-        <div class="kpi-card active" id="kpi-all" onclick="setAnomalyFilter('ALL')">
+        <!-- AI Stats -->
+        <div class="kpi-card active" id="kpi-all" onclick="setKpiFilter('ALL')">
           <div class="kpi-label">Monitored Tickets</div>
           <div class="kpi-value" id="kpiTotal">0</div>
         </div>
-        <div class="kpi-card" id="kpi-anomalies" onclick="setAnomalyFilter('ANOMALIES')">
+        <div class="kpi-card" id="kpi-anomalies" onclick="setKpiFilter('ANOMALIES')">
           <div class="kpi-label">Active Anomalies</div>
           <div class="kpi-value" style="color: var(--danger-color);" id="kpiAnomalies">0</div>
         </div>
-        <div class="kpi-card" id="kpi-healthy" onclick="setAnomalyFilter('HEALTHY')">
-          <div class="kpi-label">Healthy / Pending</div>
+        <div class="kpi-card" id="kpi-healthy" onclick="setKpiFilter('HEALTHY')">
+          <div class="kpi-label">Healthy / Processing</div>
           <div class="kpi-value" style="color: var(--safe-color);" id="kpiHealthy">0</div>
         </div>
-        <div class="kpi-card" style="cursor: default;">
-          <div class="kpi-label">Last Database Sync</div>
-          <div class="kpi-value" style="font-size: 1.1rem; color: var(--text-muted); font-weight: 600; padding-top: 1rem;" id="kpiLastSync">--</div>
+        <!-- Status Stats -->
+        <div class="kpi-card" id="kpi-open" onclick="setKpiFilter('Open')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Open</div>
+          <div class="kpi-value" id="kpiOpen">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-inprogress" onclick="setKpiFilter('In Progress')">
+          <div class="kpi-label" style="color: var(--accent-primary);">In Progress</div>
+          <div class="kpi-value" id="kpiInProgress">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-pending" onclick="setKpiFilter('Pending')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Pending</div>
+          <div class="kpi-value" id="kpiPending">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-review" onclick="setKpiFilter('Review')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Review</div>
+          <div class="kpi-value" id="kpiReview">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-awaitingresponse" onclick="setKpiFilter('Awaiting Response')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Awaiting Response</div>
+          <div class="kpi-value" id="kpiAwaiting">0</div>
         </div>
       </div>
 
@@ -267,7 +324,6 @@
               <div data-value="date-new">Sort: Newest First</div>
               <div data-value="date-old">Sort: Oldest First</div>
               <div data-value="priority">Sort: Highest Priority</div>
-              <div data-value="status">Sort: Ticket Status</div>
             </div>
           </div>
         </div>
@@ -297,7 +353,9 @@
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
     
     let rawTicketsData = [];
-    let currentAnomalyFilter = "ALL";
+    let currentFilteredData = []; // NEW: Used for exactly matching CSV exports
+    let currentKpiFilter = "ALL";
+    
     let acknowledgedTickets = [];
     try {
       acknowledgedTickets = JSON.parse(localStorage.getItem('mm_acknowledged') || '[]');
@@ -402,14 +460,14 @@
     function showSkeletons() {
       const tbody = document.getElementById('ticketTableBody');
       tbody.innerHTML = '';
-      for(let i=0; i<6; i++) {
+      for(let i=0; i<8; i++) {
         tbody.innerHTML += `
           <tr class="skeleton-row">
             <td><div class="skeleton-box" style="width: 60%"></div><div class="skeleton-box" style="width: 80%"></div></td>
             <td><div class="skeleton-box" style="width: 90%"></div></td>
             <td><div class="skeleton-box" style="width: 90%"></div></td>
             <td><div class="skeleton-box" style="width: 80%"></div></td>
-            <td><div class="skeleton-box" style="width: 100%; height: 24px; border-radius: 12px;"></div></td>
+            <td><div class="skeleton-box" style="width: 100%; height: 24px; border-radius: 6px;"></div></td>
             <td><div class="skeleton-box" style="width: 90%"></div><div class="skeleton-box" style="width: 100%"></div></td>
             <td><div class="skeleton-box" style="width: 100%; height: 28px;"></div></td>
             <td></td>
@@ -437,7 +495,7 @@
       .then(res => {
         if (res.success) {
           rawTicketsData = (res.data.tickets || []).filter(t => t && t.id);
-          document.getElementById('kpiLastSync').textContent = res.data.lastRefreshed || "--";
+          document.getElementById('kpiLastSync').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ` + (res.data.lastRefreshed || "--");
           updateKPIs();
           applyFilters();
           if (forceRefresh) showToast("Dashboard synchronized successfully.");
@@ -472,15 +530,34 @@
     function updateKPIs() {
       const total = rawTicketsData.length;
       const anomalies = rawTicketsData.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id))).length;
+      
       document.getElementById('kpiTotal').textContent = total;
       document.getElementById('kpiAnomalies').textContent = anomalies;
       document.getElementById('kpiHealthy').textContent = total - anomalies;
+
+      // Status Counts
+      const sCounts = { 'open': 0, 'in progress': 0, 'pending': 0, 'review': 0, 'awaiting response': 0 };
+      rawTicketsData.forEach(t => {
+         const stat = (t.status || "").toLowerCase();
+         if (sCounts[stat] !== undefined) sCounts[stat]++;
+      });
+
+      document.getElementById('kpiOpen').textContent = sCounts['open'];
+      document.getElementById('kpiInProgress').textContent = sCounts['in progress'];
+      document.getElementById('kpiPending').textContent = sCounts['pending'];
+      document.getElementById('kpiReview').textContent = sCounts['review'];
+      document.getElementById('kpiAwaiting').textContent = sCounts['awaiting response'];
     }
 
-    function setAnomalyFilter(filter) {
-      currentAnomalyFilter = filter;
+    function setKpiFilter(filter) {
+      currentKpiFilter = filter;
       document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
-      document.getElementById('kpi-' + filter.toLowerCase()).classList.add('active');
+      
+      const safeId = filter.toLowerCase().replace(/\s+/g, '');
+      const targetCard = document.getElementById('kpi-' + safeId);
+      if (targetCard) targetCard.classList.add('active');
+      else document.getElementById('kpi-all').classList.add('active');
+      
       applyFilters();
     }
 
@@ -498,6 +575,7 @@
         const safeClient = (t.clientName || "").toLowerCase();
         const safeOwner = (t.owner || "").toLowerCase();
         const safePri = (t.priority || "").toLowerCase();
+        const safeStatus = (t.status || "").toLowerCase();
         
         const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
         const isDismissed = acknowledgedTickets.includes(String(t.id));
@@ -512,11 +590,13 @@
         if (priority === 'Medium') mPri = safePri === 'medium';
         if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
         
-        let mAnom = true;
-        if (currentAnomalyFilter === 'ANOMALIES') mAnom = isActivelyFlagged;
-        if (currentAnomalyFilter === 'HEALTHY') mAnom = !isActivelyFlagged;
+        // Dynamic Status & KPI Routing
+        let mKpi = true;
+        if (currentKpiFilter === 'ANOMALIES') mKpi = isActivelyFlagged;
+        else if (currentKpiFilter === 'HEALTHY') mKpi = !isActivelyFlagged;
+        else if (currentKpiFilter !== 'ALL') mKpi = (safeStatus === currentKpiFilter.toLowerCase());
 
-        return mQuery && mOwner && mPri && mAnom;
+        return mQuery && mOwner && mPri && mKpi;
       });
 
       filtered.sort((a, b) => {
@@ -526,9 +606,11 @@
           const p = {'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
           return (p[(b.priority||'').toLowerCase()]||0) - (p[(a.priority||'').toLowerCase()]||0);
         }
-        if (sortVal === 'status') return (a.status||'').localeCompare(b.status||'');
         return 0;
       });
+
+      // Save filtered array directly to global state so Export button only exports what you see
+      currentFilteredData = filtered;
 
       if (!filtered.length) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">No records match criteria.</td></tr>`;
@@ -575,13 +657,14 @@
         
         if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
             const btnText = isDismissed ? 'Restore' : 'Acknowledge';
-            const actionBtn = isAnomaly ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}')">${btnText}</button>` : '';
+            const actionBtn = isAnomaly && !isOverloaded ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}')">${btnText}</button>` : '';
             aiActionHtml = `<div class="ai-action-box"><span><svg class="inline-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path><line x1="9" y1="21" x2="15" y2="21"></line></svg> <strong>Action:</strong> ${t.suggestedAction}</span> ${actionBtn}</div>`;
         }
 
         const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
         const tr = document.createElement('tr');
+        tr.className = "rendered-row";
         tr.innerHTML = `
           <td>
             <strong class="copyable" onclick="copyToCB('${t.ticketNumber}')" data-tooltip="Copy ID" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}${copySvg}</strong><br>
@@ -596,7 +679,7 @@
             <small style="color: ${pColor}; font-weight: 700;">● ${(t.priority || 'Normal').toUpperCase()}</small>
           </td>
           <td>
-            <span style="font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">${t.status}</span>
+            <span style="font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--glass-border); box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${t.status}</span>
           </td>
           <td>
             <small style="color: var(--text-main); font-weight: 600; display: block;">${t.classification}</small>
@@ -622,9 +705,10 @@
     }
 
     function exportToCSV() {
-      if (!rawTicketsData.length) return showToast("No data to export.");
+      // EXPORT ONLY VISIBLE DATA
+      if (!currentFilteredData || !currentFilteredData.length) return showToast("No data to export.");
       let csv = 'Ticket #,Created Date,Client,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
-      rawTicketsData.forEach(t => {
+      currentFilteredData.forEach(t => {
         const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url ];
         csv += row.join(',') + '\n';
       });
@@ -651,7 +735,7 @@
       t.className = 'toast'; 
       t.innerHTML = `<svg class="svg-icon" style="color:var(--accent-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> <div>${msg}</div>`;
       tc.appendChild(t);
-      setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(50px)'; setTimeout(()=>t.remove(),300); }, 3000);
+      setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(50px) scale(0.9)'; setTimeout(()=>t.remove(),400); }, 3000);
     }
   </script>
 </body>
