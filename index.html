@@ -109,9 +109,9 @@
     .btn-icon { padding: 0; width: 40px; justify-content: center; }
     .svg-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: all 0.3s ease; }
 
-    /* STAGGERED KPIs */
-    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .kpi-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(20px); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; overflow: hidden; animation: fadeSlideUp 0.6s ease backwards; }
+    /* STAGGERED KPIs (Adjusted to fit single row) */
+    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+    .kpi-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(20px); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; overflow: hidden; animation: fadeSlideUp 0.6s ease backwards; }
     .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s ease; }
     
     /* Animation Delays for Tiles */
@@ -120,11 +120,11 @@
     .kpi-card:nth-child(5) { animation-delay: 0.25s; } .kpi-card:nth-child(6) { animation-delay: 0.30s; }
     .kpi-card:nth-child(7) { animation-delay: 0.35s; } .kpi-card:nth-child(8) { animation-delay: 0.40s; }
 
-    .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: rgba(255,255,255,0.2); }
+    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: rgba(255,255,255,0.2); }
     .kpi-card:hover::before { opacity: 1; }
-    .kpi-card.active { border-color: var(--accent-primary); box-shadow: 0 0 0 2px var(--accent-primary), 0 12px 30px rgba(56, 189, 248, 0.15); transform: translateY(-5px); }
-    .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 0.25rem 0; letter-spacing: -1px; transition: color 0.3s ease; }
-    .kpi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; }
+    .kpi-card.active { border-color: var(--accent-primary); box-shadow: 0 0 0 2px var(--accent-primary), 0 12px 30px rgba(56, 189, 248, 0.15); transform: translateY(-4px); }
+    .kpi-value { font-size: 1.8rem; font-weight: 800; margin: 0.2rem 0; letter-spacing: -1px; transition: color 0.3s ease; }
+    .kpi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
     /* CONTROLS & DROPDOWNS */
     .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
@@ -146,7 +146,7 @@
     .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); padding-left: 1.5rem; }
 
     /* TABLE */
-    .table-container { max-height: 80vh; overflow-y: auto; overflow-x: auto; border-radius: 16px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.1); }
+    .table-container { max-height: 80vh; overflow-y: auto; overflow-x: auto; border-radius: 16px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
     th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: all 0.3s ease; background: transparent; }
@@ -353,7 +353,7 @@
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
     
     let rawTicketsData = [];
-    let currentFilteredData = []; // NEW: Used for exactly matching CSV exports
+    let currentFilteredData = []; 
     let currentKpiFilter = "ALL";
     
     let acknowledgedTickets = [];
@@ -590,7 +590,6 @@
         if (priority === 'Medium') mPri = safePri === 'medium';
         if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
         
-        // Dynamic Status & KPI Routing
         let mKpi = true;
         if (currentKpiFilter === 'ANOMALIES') mKpi = isActivelyFlagged;
         else if (currentKpiFilter === 'HEALTHY') mKpi = !isActivelyFlagged;
@@ -609,7 +608,6 @@
         return 0;
       });
 
-      // Save filtered array directly to global state so Export button only exports what you see
       currentFilteredData = filtered;
 
       if (!filtered.length) {
@@ -679,7 +677,7 @@
             <small style="color: ${pColor}; font-weight: 700;">● ${(t.priority || 'Normal').toUpperCase()}</small>
           </td>
           <td>
-            <span style="font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--glass-border); box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${t.status}</span>
+            <span style="font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--glass-border); box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap; display: inline-block;">${t.status}</span>
           </td>
           <td>
             <small style="color: var(--text-main); font-weight: 600; display: block;">${t.classification}</small>
@@ -705,7 +703,6 @@
     }
 
     function exportToCSV() {
-      // EXPORT ONLY VISIBLE DATA
       if (!currentFilteredData || !currentFilteredData.length) return showToast("No data to export.");
       let csv = 'Ticket #,Created Date,Client,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
       currentFilteredData.forEach(t => {
