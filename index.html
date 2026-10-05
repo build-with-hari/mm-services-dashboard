@@ -67,7 +67,7 @@
       to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
 
-    .app-container { max-width: 1650px; margin: 0 auto; padding: 1rem 1.5rem 1.5rem; animation: fadeInBlur 0.6s ease-out forwards; }
+    .app-container { max-width: 1650px; margin: 0 auto; padding: 1rem 1.5rem 0.5rem; animation: fadeInBlur 0.6s ease-out forwards; }
     
     /* LIQUID GLASS PANELS */
     .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); transition: all 0.4s ease; }
@@ -148,7 +148,7 @@
 
     /* TABLE */
     /* SCROLL FIX: Dynamic calculated max-height perfectly sizes the table on any screen */
-    .table-container { max-height: calc(100vh - 350px); overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
+    .table-container { max-height: calc(100vh - 150px); overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
     th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: all 0.3s ease; background: transparent; }
