@@ -91,10 +91,10 @@
       opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; pointer-events: none;
     }
     [data-tooltip]:hover::before, [data-tooltip]:hover::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); filter: blur(0); }
-    /* MAKE TOOLTIPS OPEN TO THE LEFT TO AVOID HEADER CLIPPING */
-    .pop-left[data-tooltip]::before { bottom: auto; top: 50%; left: auto; right: calc(100% + 8px); transform: translateY(-50%) translateX(5px); }
-    .pop-left[data-tooltip]::after { bottom: auto; top: 50%; left: auto; right: 100%; transform: translateY(-50%) translateX(5px); border-color: transparent transparent transparent var(--text-main); border-width: 5px 0 5px 5px; }
-    .pop-left[data-tooltip]:hover::before, .pop-left[data-tooltip]:hover::after { transform: translateY(-50%) translateX(0); }
+    /* MAKE TOOLTIPS OPEN TO THE BOTTOM */
+    .pop-bottom[data-tooltip]::before { bottom: auto; top: calc(100% + 8px); transform: translateX(-50%) translateY(-5px); }
+    .pop-bottom[data-tooltip]::after { bottom: auto; top: 100%; border-width: 5px; border-style: solid; border-color: transparent transparent var(--text-main) transparent; transform: translateX(-50%) translateY(-5px); }
+    .pop-bottom[data-tooltip]:hover::before, .pop-bottom[data-tooltip]:hover::after { transform: translateX(-50%) translateY(0); }
 
     /* HEADER & BUTTONS */
     .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
@@ -713,7 +713,7 @@
             ${aiActionHtml}
           </td>
           <td style="text-align: right; vertical-align: middle;">
-            <a href="${correctUrl}" target="_blank" class="btn btn-outline pop-left" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+            <a href="${correctUrl}" target="_blank" class="btn btn-outline pop-bottom" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
           </td>
         `;
         tbody.appendChild(tr);
