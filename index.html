@@ -47,7 +47,7 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; overflow-x: hidden; transition: background-color 0.5s ease; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+    body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; transition: background-color 0.5s ease; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
     
     /* ANIMATED BACKGROUND BLOBS */
     .blob { position: fixed; border-radius: 50%; filter: blur(100px); z-index: -1; opacity: 0.6; animation: float 20s infinite ease-in-out; transition: all 0.5s ease; }
@@ -65,14 +65,16 @@
       to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
 
-    .app-container { max-width: 1650px; margin: 0 auto; padding: 1.5rem; animation: fadeInBlur 0.6s ease-out forwards; }
+    .app-container { max-width: 1650px; margin: 0 auto; padding: 1rem 1.5rem 0.5rem; animation: fadeInBlur 0.6s ease-out forwards; height: 100%; display: flex; flex-direction: column; }
     
     /* LIQUID GLASS PANELS */
-    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); transition: all 0.4s ease; }
+    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); transition: all 0.4s ease; flex-shrink: 0; }
     .glass-panel:hover { box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); border-color: rgba(255, 255, 255, 0.2); }
+    
+    .table-glass-panel { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; } /* allows table to take remaining space */
 
     /* AUTH UI */
-    .auth-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
+    .auth-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
     .auth-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 3rem 2.5rem; border-radius: 24px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(30px); transition: transform 0.3s ease; }
     .auth-card:hover { transform: translateY(-5px); }
 
@@ -109,12 +111,11 @@
     .btn-icon { padding: 0; width: 40px; justify-content: center; }
     .svg-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: all 0.3s ease; }
 
-    /* STAGGERED KPIs (Adjusted to fit single row) */
-    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+    /* STAGGERED KPIs */
+    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem; margin-bottom: 1rem; flex-shrink: 0; }
     .kpi-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(20px); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; overflow: hidden; animation: fadeSlideUp 0.6s ease backwards; }
     .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s ease; }
     
-    /* Animation Delays for Tiles */
     .kpi-card:nth-child(1) { animation-delay: 0.05s; } .kpi-card:nth-child(2) { animation-delay: 0.10s; }
     .kpi-card:nth-child(3) { animation-delay: 0.15s; } .kpi-card:nth-child(4) { animation-delay: 0.20s; }
     .kpi-card:nth-child(5) { animation-delay: 0.25s; } .kpi-card:nth-child(6) { animation-delay: 0.30s; }
@@ -127,7 +128,7 @@
     .kpi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
     /* CONTROLS & DROPDOWNS */
-    .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+    .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; flex-shrink: 0; }
     .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; }
     .search-icon { position: absolute; left: 14px; opacity: 0.5; width: 16px; height: 16px; transition: opacity 0.3s ease; }
     .search-input { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem 0.7rem 2.6rem; border-radius: 12px; outline: none; font-size: 0.85rem; transition: all 0.3s ease; width: 100%; height: 42px; backdrop-filter: blur(10px); }
@@ -146,7 +147,7 @@
     .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); padding-left: 1.5rem; }
 
     /* TABLE */
-    .table-container { max-height: 80vh; overflow-y: auto; overflow-x: auto; border-radius: 16px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
+    .table-container { flex-grow: 1; overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); min-height: 0; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
     th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: all 0.3s ease; background: transparent; }
@@ -174,7 +175,9 @@
     .badge-warning { background: rgba(251, 191, 36, 0.1); color: var(--warning-color); border-color: rgba(251, 191, 36, 0.3); }
     .badge-dismissed { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.3); text-decoration: line-through; }
     
-    .aging-badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; margin-top: 6px; font-weight: 700; }
+    .status-badge { font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--glass-border); box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap; display: inline-block; }
+
+    .aging-badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; margin-top: 6px; font-weight: 700; white-space: nowrap; }
     .aging-warning { background: rgba(251, 191, 36, 0.15); color: var(--warning-color); border: 1px solid rgba(251, 191, 36, 0.3); }
     .aging-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); }
 
@@ -213,8 +216,8 @@
       </div>
     </div>
 
-    <div id="dashboardPanel" style="display: none;">
-      <div class="glass-panel" style="padding: 1.25rem 2rem;">
+    <div id="dashboardPanel" style="display: none; flex-grow: 1; flex-direction: column;">
+      <div class="glass-panel" style="padding: 1.25rem 1.5rem;">
         <div class="header-bar">
           <div style="display: flex; align-items: center; gap: 1.25rem;">
             <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 42px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
@@ -286,11 +289,11 @@
         </div>
       </div>
 
-      <div class="glass-panel" style="padding: 1.5rem;">
+      <div class="glass-panel table-glass-panel" style="padding: 1.5rem;">
         <div class="controls-bar">
           <div class="search-wrapper">
             <svg class="search-icon svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search Subject, Client, Ticket #..." oninput="applyFilters()">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search Omni (Subject, Client, Status, Module, Owner...)" oninput="applyFilters()">
           </div>
           
           <div class="custom-dropdown" id="dd-owner" data-value="ALL">
@@ -382,7 +385,8 @@
 
       if (storedSession && expiresAt && new Date().getTime() < parseInt(expiresAt, 10)) {
         if (userName) document.getElementById('userGreeting').textContent = "Hi, " + userName.split(' ')[0];
-        showDashboardUI();
+        document.getElementById('dashboardPanel').style.display = 'flex'; // Use flex for dynamic height
+        document.getElementById('authPanel').style.display = 'none';
         loadDashboardData(false);
       } else {
         localStorage.removeItem('mm_ticket_session');
@@ -570,18 +574,30 @@
       tbody.innerHTML = '';
 
       let filtered = rawTicketsData.filter(t => {
+        // OMNI-SEARCH STRINGS
         const safeSubj = (t.subject || "").toLowerCase();
         const safeNum = String(t.ticketNumber || "").toLowerCase();
         const safeClient = (t.clientName || "").toLowerCase();
         const safeOwner = (t.owner || "").toLowerCase();
         const safePri = (t.priority || "").toLowerCase();
         const safeStatus = (t.status || "").toLowerCase();
+        const safeClass = (t.classification || "").toLowerCase();
+        const safeMod = (t.module || "").toLowerCase();
         
         const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
         const isDismissed = acknowledgedTickets.includes(String(t.id));
         const isActivelyFlagged = isAnomalyRaw && !isDismissed;
 
-        const mQuery = !query || safeSubj.includes(query) || safeNum.includes(query) || safeClient.includes(query);
+        const mQuery = !query || 
+          safeSubj.includes(query) || 
+          safeNum.includes(query) || 
+          safeClient.includes(query) ||
+          safeOwner.includes(query) ||
+          safePri.includes(query) ||
+          safeStatus.includes(query) ||
+          safeClass.includes(query) ||
+          safeMod.includes(query);
+
         const mOwner = owner === 'ALL' || t.owner === owner;
         
         let mPri = true;
@@ -661,6 +677,9 @@
 
         const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
+        // INSTANT LINK FIX: Generated dynamically using the ticket ID for all existing tickets
+        const correctUrl = `https://helpdesk.mindmatrix.net/agent/mindmatrixinc/all/tickets/details/${t.id}`;
+
         const tr = document.createElement('tr');
         tr.className = "rendered-row";
         tr.innerHTML = `
@@ -677,7 +696,7 @@
             <small style="color: ${pColor}; font-weight: 700;">● ${(t.priority || 'Normal').toUpperCase()}</small>
           </td>
           <td>
-            <span style="font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--glass-border); box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap; display: inline-block;">${t.status}</span>
+            <span class="status-badge">${t.status}</span>
           </td>
           <td>
             <small style="color: var(--text-main); font-weight: 600; display: block;">${t.classification}</small>
@@ -690,7 +709,7 @@
             ${aiActionHtml}
           </td>
           <td style="text-align: right; vertical-align: middle;">
-            <a href="${t.url}" target="_blank" class="btn btn-outline" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+            <a href="${correctUrl}" target="_blank" class="btn btn-outline" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
           </td>
         `;
         tbody.appendChild(tr);
@@ -706,7 +725,8 @@
       if (!currentFilteredData || !currentFilteredData.length) return showToast("No data to export.");
       let csv = 'Ticket #,Created Date,Client,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
       currentFilteredData.forEach(t => {
-        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url ];
+        const correctUrl = `https://helpdesk.mindmatrix.net/agent/mindmatrixinc/all/tickets/details/${t.id}`;
+        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, correctUrl ];
         csv += row.join(',') + '\n';
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -717,8 +737,14 @@
       showToast("CSV Export Started.");
     }
 
-    function showDashboardUI() { document.getElementById('authPanel').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; }
-    function showAuthUI() { document.getElementById('authPanel').style.display = 'flex'; document.getElementById('dashboardPanel').style.display = 'none'; }
+    function showDashboardUI() { 
+      document.getElementById('authPanel').style.display = 'none'; 
+      document.getElementById('dashboardPanel').style.display = 'flex'; 
+    }
+    function showAuthUI() { 
+      document.getElementById('authPanel').style.display = 'flex'; 
+      document.getElementById('dashboardPanel').style.display = 'none'; 
+    }
     function logout() { localStorage.clear(); showAuthUI(); showToast("Signed out."); }
     function toggleTheme() {
       const nt = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
