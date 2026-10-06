@@ -404,69 +404,25 @@
     });
 
     function generateDailyMetrics() {
-        if (!rawTicketsData || rawTicketsData.length === 0) {
-            showToast("No data available to calculate metrics.");
-            return;
-        }
-
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0,0,0).getTime();
-        const yEnd = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23,59,59).getTime();
-
-        const depts = [
-            'Support', 'Services', 'Development', 'Production', 
-            'IT Requests', 'Project Management', 'Specialist Team', 
-            'Billing', 'Concierge Services', 'SalesHelp'
-        ];
-
-        let metrics = {};
-        depts.forEach(d => metrics[d] = { total: 0, new: 0, closed: 0 });
-        let overallTotal = 0;
-
-        rawTicketsData.forEach(t => {
-            const created = new Date(t.createdDate).getTime();
-            const modified = new Date(t.modifiedDate).getTime();
-            const isClosed = (t.status || "").toLowerCase() === 'closed';
-            
-            const isNewYesterday = created >= yStart && created <= yEnd;
-            const isClosedYesterday = isClosed && modified >= yStart && modified <= yEnd;
-            const isBacklog = !isClosed;
-            
-            if (isBacklog) overallTotal++;
-
-            const cat = ((t.classification || "") + " " + (t.module || "")).toLowerCase();
-            let dep = null;
-            if (cat.includes('concierge')) dep = 'Concierge Services';
-            else if (cat.includes('saleshelp')) dep = 'SalesHelp';
-            else if (cat.includes('specialist')) dep = 'Specialist Team';
-            else if (cat.includes('project')) dep = 'Project Management';
-            else if (cat.includes('billing')) dep = 'Billing';
-            else if (cat.includes('it')) dep = 'IT Requests';
-            else if (cat.includes('production')) dep = 'Production';
-            else if (cat.includes('development')) dep = 'Development';
-            else if (cat.includes('support')) dep = 'Support';
-            else if (cat.includes('services')) dep = 'Services';
-            
-            if (dep) {
-                if (isBacklog) metrics[dep].total++;
-                if (isNewYesterday) metrics[dep].new++;
-                if (isClosedYesterday) metrics[dep].closed++;
+        showToast("Fetching live company metrics from Zoho... Please wait ~5 seconds.");
+        const token = localStorage.getItem('mm_ticket_session');
+        
+        fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: "getLiveMetrics", sessionToken: token })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                navigator.clipboard.writeText(data.tsv).then(() => {
+                    showToast("Yesterday's EST metrics securely copied to clipboard!");
+                }).catch(err => showToast("Failed to copy to clipboard."));
+            } else {
+                showToast("Error generating metrics: " + data.message);
             }
-        });
-
-        const dateStr = yesterday.toLocaleDateString('en-US');
-        
-        let headerRow = `Date\tTotal Tickets\t` + depts.map(d => `${d} Total\t${d} New\t${d} Closed`).join('\t');
-        let dataRow = `${dateStr}\t${overallTotal}\t` + depts.map(d => `${metrics[d].total}\t${metrics[d].new}\t${metrics[d].closed}`).join('\t');
-        
-        const tsv = headerRow + '\n' + dataRow;
-        
-        navigator.clipboard.writeText(tsv).then(() => {
-            showToast("Yesterday's metrics safely copied to clipboard!");
-        }).catch(err => {
-            showToast("Failed to copy metrics.");
-        });
+        })
+        .catch(err => showToast("Network error while generating metrics."));
     }
 
     function handleGoogleLogin(response) {
