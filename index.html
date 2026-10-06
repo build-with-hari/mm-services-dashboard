@@ -354,6 +354,21 @@
     </div>
   </div>
 
+  <!-- ALT+C METRICS MODAL -->
+  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(5px); animation: fadeInBlur 0.3s ease forwards;">
+    <div class="glass-panel" style="max-width:800px; width:90%; position:relative; margin:0;">
+      <h3 style="margin-bottom:15px; color:var(--text-main); font-weight:700;">Daily Metrics Generated</h3>
+      <textarea id="metricsTextarea" style="width:100%; height:80px; background:var(--glass-highlight); color:var(--text-main); border:1px solid var(--glass-border); border-radius:8px; padding:12px; font-family:monospace; margin-bottom:15px; white-space:pre; overflow-x:auto;" readonly></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn-outline" onclick="document.getElementById('metricsModal').style.display='none'">Close</button>
+        <button class="btn-primary" onclick="copyMetricsFromModal()">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="margin-right:6px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Copy to Clipboard
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
     
@@ -415,18 +430,36 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // The debugger log is returned safely to the frontend!
                 console.log("ALT+C DEBUGGER LOG:", data.tsv.debug);
                 
-                navigator.clipboard.writeText(data.tsv.tsv).then(() => {
-                    showToast("Metrics securely copied! Check browser console (F12) to see debugger log.");
-                }).catch(err => showToast("Failed to copy to clipboard."));
+                // Show modal to bypass browser timeout blocks
+                document.getElementById('metricsTextarea').value = data.tsv.tsv;
+                document.getElementById('metricsModal').style.display = 'flex';
+                
             } else {
-                console.error("SERVER ERROR:", data.message);
-                alert("Backend Error (Check Console for full trace):\n" + data.message);
+                alert("Backend Error:\n" + data.message);
             }
         })
         .catch(err => showToast("Network error while generating metrics."));
+    }
+
+    function copyMetricsFromModal() {
+        const txt = document.getElementById('metricsTextarea').value;
+        
+        // Direct click interaction allows native clipboard 100% of the time
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(txt).then(() => {
+                showToast("Metrics securely copied! You can paste in Excel.");
+                document.getElementById('metricsModal').style.display = 'none';
+            });
+        } else {
+            // Absolute failsafe
+            let ta = document.getElementById('metricsTextarea');
+            ta.select();
+            document.execCommand('copy');
+            showToast("Metrics copied via fallback!");
+            document.getElementById('metricsModal').style.display = 'none';
+        }
     }
 
     function handleGoogleLogin(response) {
