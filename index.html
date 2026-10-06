@@ -303,12 +303,12 @@
             <div class="dropdown-items">
               <div data-value="ALL">All Executives</div>
               <div data-value="Amit Badoni">Amit Badoni</div>
-              <div data-value="Hari Iyer">Hari Iyer</div>
-              <div data-value="Rahul Kamble">Rahul Kamble</div>
-              <div data-value="Shashank Singh">Shashank Singh</div>
               <div data-value="Gagandeep Kaur">Gagandeep Kaur</div>
+              <div data-value="Hari Iyer">Hari Iyer</div>
               <div data-value="Jashandeep Kaur">Jashandeep Kaur</div>
               <div data-value="Nikunj Singla">Nikunj Singla</div>
+              <div data-value="Rahul Kamble">Rahul Kamble</div>
+              <div data-value="Shashank Singh">Shashank Singh</div>
             </div>
           </div>
 
@@ -707,6 +707,7 @@
         const safePri = (t.priority || "").toLowerCase();
         const safeClass = (t.classification || "").toLowerCase();
         const safeMod = (t.module || "").toLowerCase();
+        const safeDept = (t.department || "").toLowerCase(); // <--- ADDED THIS LINE
 
         const mQuery = !query || 
           safeSubj.includes(query) || 
@@ -716,7 +717,8 @@
           safePri.includes(query) ||
           safeStatus.includes(query) ||
           safeClass.includes(query) ||
-          safeMod.includes(query);
+          safeMod.includes(query) ||
+          safeDept.includes(query);
 
         const mOwner = owner === 'ALL' || t.owner === owner;
         
@@ -811,12 +813,16 @@
 
         const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
+        // BUILD DEPARTMENT PILL
+        let deptPill = `<span style="display:inline-block; margin-top:4px; padding:2px 6px; border-radius:4px; font-size:0.6rem; font-weight:700; text-transform:uppercase; background:var(--glass-highlight); border:1px solid var(--glass-border); color:var(--text-muted);">${t.department || 'Unknown'}</span>`;
+
         const tr = document.createElement('tr');
         tr.className = "rendered-row";
         tr.innerHTML = `
           <td>
             <strong class="copyable" onclick="copyToCB('${t.ticketNumber}')" data-tooltip="Copy ID" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}${copySvg}</strong><br>
             <small style="color: var(--text-muted);">${dStr}</small><br>
+            ${deptPill}
             ${agingHtml}
           </td>
           <td>
@@ -854,9 +860,9 @@
 
     function exportToCSV() {
       if (!currentFilteredData || !currentFilteredData.length) return showToast("No data to export.");
-      let csv = 'Ticket #,Created Date,Client,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
+      let csv = 'Ticket #,Created Date,Client,Department,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
       currentFilteredData.forEach(t => {
-        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url ];
+        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.department||''}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url ];
         csv += row.join(',') + '\n';
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
