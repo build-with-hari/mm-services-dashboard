@@ -414,18 +414,28 @@
     document.addEventListener('keydown', function(e) {
       if (e.altKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
-        generateDailyMetrics();
+        
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() - 1);
+        const yyyy = defaultDate.getFullYear();
+        const mm = String(defaultDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(defaultDate.getDate()).padStart(2, '0');
+        
+        const userDate = prompt("Enter Target Date (YYYY-MM-DD) for Metrics:", `${yyyy}-${mm}-${dd}`);
+        if (userDate) {
+            generateDailyMetrics(userDate);
+        }
       }
     });
 
-    function generateDailyMetrics() {
-        showToast("Fetching live company metrics from Zoho... Please wait ~5 seconds.");
+    function generateDailyMetrics(targetDate) {
+        showToast(`Fetching metrics for ${targetDate}... Please wait ~5-10 seconds.`);
         const token = localStorage.getItem('mm_ticket_session');
         
         fetch(BACKEND_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: "getLiveMetrics", sessionToken: token })
+            body: JSON.stringify({ action: "getLiveMetrics", sessionToken: token, targetDate: targetDate })
         })
         .then(res => res.json())
         .then(data => {
