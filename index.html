@@ -354,15 +354,26 @@
     </div>
   </div>
 
-  <!-- ALT+C METRICS MODAL -->
-  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(5px); animation: fadeInBlur 0.3s ease forwards;">
-    <div class="glass-panel" style="max-width:800px; width:90%; position:relative; margin:0;">
-      <h3 style="margin-bottom:15px; color:var(--text-main); font-weight:700;">Daily Metrics Generated</h3>
-      <textarea id="metricsTextarea" style="width:100%; height:80px; background:var(--glass-highlight); color:var(--text-main); border:1px solid var(--glass-border); border-radius:8px; padding:12px; font-family:monospace; margin-bottom:15px; white-space:pre; overflow-x:auto;" readonly></textarea>
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn-outline" onclick="document.getElementById('metricsModal').style.display='none'">Close</button>
+  <!-- UPGRADED ALT+C METRICS MODAL -->
+  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(10px); animation: fadeInBlur 0.3s ease forwards;">
+    <div class="glass-panel" style="max-width:900px; width:95%; position:relative; margin:0; padding: 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid var(--accent-primary);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+        <h3 style="margin:0; color:var(--text-main); font-weight:800; font-size:1.4rem; display:flex; align-items:center; gap:10px;">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-primary); width:24px; height:24px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Daily Metrics Report
+        </h3>
+        <span id="modalDateDisplay" class="sync-badge" style="margin:0; font-size: 0.85rem; padding: 6px 12px;"></span>
+      </div>
+      
+      <div style="background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; position:relative;">
+        <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, var(--accent-primary), var(--safe-color)); border-top-left-radius: 12px; border-top-right-radius: 12px;"></div>
+        <textarea id="metricsTextarea" style="width:100%; height:120px; background:transparent; color:var(--text-main); border:none; padding:10px; font-family:'Courier New', Courier, monospace; font-size:0.85rem; line-height:1.5; resize:none; outline:none; white-space:pre; overflow-x:auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;" readonly></textarea>
+      </div>
+      
+      <div style="display:flex; justify-content:flex-end; gap:12px;">
+        <button class="btn-outline" onclick="document.getElementById('metricsModal').style.display='none'">Cancel</button>
         <button class="btn-primary" onclick="copyMetricsFromModal()">
-          <svg class="svg-icon" viewBox="0 0 24 24" style="margin-right:6px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           Copy to Clipboard
         </button>
       </div>
@@ -410,26 +421,27 @@
       }
     });
 
-    // ALT+C METRICS LOGIC
+    // ALT+C METRICS LOGIC (Fully Automated Mon -> Fri)
     document.addEventListener('keydown', function(e) {
       if (e.altKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
         
-        const defaultDate = new Date();
-        defaultDate.setDate(defaultDate.getDate() - 1);
-        const yyyy = defaultDate.getFullYear();
-        const mm = String(defaultDate.getMonth() + 1).padStart(2, '0');
-        const dd = String(defaultDate.getDate()).padStart(2, '0');
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const daysToSubtract = (dayOfWeek === 1) ? 3 : 1; // 1 is Monday
         
-        const userDate = prompt("Enter Target Date (YYYY-MM-DD) for Metrics:", `${yyyy}-${mm}-${dd}`);
-        if (userDate) {
-            generateDailyMetrics(userDate);
-        }
+        const targetDate = new Date(now.getTime() - (daysToSubtract * 86400000));
+        const yyyy = targetDate.getFullYear();
+        const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(targetDate.getDate()).padStart(2, '0');
+        
+        const formattedDate = `${yyyy}-${mm}-${dd}`;
+        generateDailyMetrics(formattedDate);
       }
     });
 
     function generateDailyMetrics(targetDate) {
-        showToast(`Fetching metrics for ${targetDate}... Please wait ~5-10 seconds.`);
+        showToast(`Fetching metrics for ${targetDate}... Please wait ~10-15 seconds.`);
         const token = localStorage.getItem('mm_ticket_session');
         
         fetch(BACKEND_URL, {
@@ -442,7 +454,7 @@
             if (data.success) {
                 console.log("ALT+C DEBUGGER LOG:", data.tsv.debug);
                 
-                // Show modal to bypass browser timeout blocks
+                document.getElementById('modalDateDisplay').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24" style="margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Target: ${targetDate}`;
                 document.getElementById('metricsTextarea').value = data.tsv.tsv;
                 document.getElementById('metricsModal').style.display = 'flex';
                 
@@ -456,14 +468,12 @@
     function copyMetricsFromModal() {
         const txt = document.getElementById('metricsTextarea').value;
         
-        // Direct click interaction allows native clipboard 100% of the time
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(txt).then(() => {
                 showToast("Metrics securely copied! You can paste in Excel.");
                 document.getElementById('metricsModal').style.display = 'none';
             });
         } else {
-            // Absolute failsafe
             let ta = document.getElementById('metricsTextarea');
             ta.select();
             document.execCommand('copy');
