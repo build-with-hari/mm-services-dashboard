@@ -415,11 +415,15 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                navigator.clipboard.writeText(data.tsv).then(() => {
-                    showToast("Yesterday's EST metrics securely copied to clipboard!");
+                // The debugger log is returned safely to the frontend!
+                console.log("ALT+C DEBUGGER LOG:", data.tsv.debug);
+                
+                navigator.clipboard.writeText(data.tsv.tsv).then(() => {
+                    showToast("Metrics securely copied! Check browser console (F12) to see debugger log.");
                 }).catch(err => showToast("Failed to copy to clipboard."));
             } else {
-                showToast("Error generating metrics: " + data.message);
+                console.error("SERVER ERROR:", data.message);
+                alert("Backend Error (Check Console for full trace):\n" + data.message);
             }
         })
         .catch(err => showToast("Network error while generating metrics."));
