@@ -355,19 +355,26 @@
   </div>
 
   <!-- UPGRADED ALT+C METRICS MODAL -->
-  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(10px); animation: fadeInBlur 0.3s ease forwards;">
-    <div class="glass-panel" style="max-width:900px; width:95%; position:relative; margin:0; padding: 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid var(--accent-primary);">
+  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation: fadeInBlur 0.3s ease forwards;">
+    <!-- Widened max-width to accommodate all columns elegantly -->
+    <div class="glass-panel" style="max-width:95vw; width:1400px; position:relative; margin:0; padding: 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid var(--accent-primary);">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
         <h3 style="margin:0; color:var(--text-main); font-weight:800; font-size:1.4rem; display:flex; align-items:center; gap:10px;">
-          <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-primary); width:24px; height:24px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-primary); width:24px; height:24px;"><path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Daily Metrics Report
         </h3>
         <span id="modalDateDisplay" class="sync-badge" style="margin:0; font-size: 0.85rem; padding: 6px 12px;"></span>
       </div>
       
-      <div style="background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; position:relative;">
+      <!-- Replaced solid grey with transparent glass-highlight -->
+      <div style="background: var(--glass-highlight); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; position:relative; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;">
         <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, var(--accent-primary), var(--safe-color)); border-top-left-radius: 12px; border-top-right-radius: 12px;"></div>
-        <textarea id="metricsTextarea" style="width:100%; height:120px; background:transparent; color:var(--text-main); border:none; padding:10px; font-family:'Courier New', Courier, monospace; font-size:0.85rem; line-height:1.5; resize:none; outline:none; white-space:pre; overflow-x:auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;" readonly></textarea>
+        
+        <!-- Hidden TSV store for exact Excel copying -->
+        <textarea id="metricsTextarea" style="position:absolute; left:-9999px; opacity:0;" readonly></textarea>
+        
+        <!-- Aligned Visual Table Container -->
+        <div id="metricsVisualTable" style="margin-top: 5px;"></div>
       </div>
       
       <div style="display:flex; justify-content:flex-end; gap:12px;">
@@ -455,7 +462,30 @@
                 console.log("ALT+C DEBUGGER LOG:", data.tsv.debug);
                 
                 document.getElementById('modalDateDisplay').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24" style="margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Target: ${targetDate}`;
-                document.getElementById('metricsTextarea').value = data.tsv.tsv;
+                
+                const tsvData = data.tsv.tsv;
+                // Store invisible raw text for the clipboard copy
+                document.getElementById('metricsTextarea').value = tsvData;
+                
+                // Build a perfectly aligned HTML table for the visual UI
+                const rows = tsvData.split('\n');
+                let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">';
+                rows.forEach((row, i) => {
+                    let cells = row.split('\t');
+                    tableHtml += '<tr style="border-bottom: 1px solid var(--glass-border);">';
+                    cells.forEach(cell => {
+                        if(i === 0) {
+                            tableHtml += `<th style="padding: 10px 15px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px;">${cell}</th>`;
+                        } else {
+                            tableHtml += `<td style="padding: 12px 15px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
+                        }
+                    });
+                    tableHtml += '</tr>';
+                });
+                tableHtml += '</table>';
+                
+                // Inject the beautiful table and show modal
+                document.getElementById('metricsVisualTable').innerHTML = tableHtml;
                 document.getElementById('metricsModal').style.display = 'flex';
                 
             } else {
