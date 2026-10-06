@@ -47,8 +47,6 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    
-    /* SCROLL FIX: Removed "overflow: hidden" and restored native scrolling */
     body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; overflow-y: auto; overflow-x: hidden; transition: background-color 0.5s ease; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
     
     /* ANIMATED BACKGROUND BLOBS */
@@ -151,7 +149,6 @@
     .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); padding-left: 1.5rem; }
 
     /* TABLE */
-    /* SCROLL FIX: Dynamic calculated max-height perfectly sizes the table on any screen */
     .table-container { max-height: calc(100vh - 150px); overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
     th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -398,6 +395,80 @@
       }
     });
 
+    // ALT+C METRICS LOGIC
+    document.addEventListener('keydown', function(e) {
+      if (e.altKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        generateDailyMetrics();
+      }
+    });
+
+    function generateDailyMetrics() {
+        if (!rawTicketsData || rawTicketsData.length === 0) {
+            showToast("No data available to calculate metrics.");
+            return;
+        }
+
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0,0,0).getTime();
+        const yEnd = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23,59,59).getTime();
+
+        const depts = [
+            'Support', 'Services', 'Development', 'Production', 
+            'IT Requests', 'Project Management', 'Specialist Team', 
+            'Billing', 'Concierge Services', 'SalesHelp'
+        ];
+
+        let metrics = {};
+        depts.forEach(d => metrics[d] = { total: 0, new: 0, closed: 0 });
+        let overallTotal = 0;
+
+        rawTicketsData.forEach(t => {
+            const created = new Date(t.createdDate).getTime();
+            const modified = new Date(t.modifiedDate).getTime();
+            const isClosed = (t.status || "").toLowerCase() === 'closed';
+            
+            const isNewYesterday = created >= yStart && created <= yEnd;
+            const isClosedYesterday = isClosed && modified >= yStart && modified <= yEnd;
+            const isBacklog = !isClosed;
+            
+            if (isBacklog) overallTotal++;
+
+            const cat = ((t.classification || "") + " " + (t.module || "")).toLowerCase();
+            let dep = null;
+            if (cat.includes('concierge')) dep = 'Concierge Services';
+            else if (cat.includes('saleshelp')) dep = 'SalesHelp';
+            else if (cat.includes('specialist')) dep = 'Specialist Team';
+            else if (cat.includes('project')) dep = 'Project Management';
+            else if (cat.includes('billing')) dep = 'Billing';
+            else if (cat.includes('it')) dep = 'IT Requests';
+            else if (cat.includes('production')) dep = 'Production';
+            else if (cat.includes('development')) dep = 'Development';
+            else if (cat.includes('support')) dep = 'Support';
+            else if (cat.includes('services')) dep = 'Services';
+            
+            if (dep) {
+                if (isBacklog) metrics[dep].total++;
+                if (isNewYesterday) metrics[dep].new++;
+                if (isClosedYesterday) metrics[dep].closed++;
+            }
+        });
+
+        const dateStr = yesterday.toLocaleDateString('en-US');
+        
+        let headerRow = `Date\tTotal Tickets\t` + depts.map(d => `${d} Total\t${d} New\t${d} Closed`).join('\t');
+        let dataRow = `${dateStr}\t${overallTotal}\t` + depts.map(d => `${metrics[d].total}\t${metrics[d].new}\t${metrics[d].closed}`).join('\t');
+        
+        const tsv = headerRow + '\n' + dataRow;
+        
+        navigator.clipboard.writeText(tsv).then(() => {
+            showToast("Yesterday's metrics safely copied to clipboard!");
+        }).catch(err => {
+            showToast("Failed to copy metrics.");
+        });
+    }
+
     function handleGoogleLogin(response) {
       document.getElementById('authError').style.display = 'none';
       fetch(BACKEND_URL, {
@@ -536,16 +607,16 @@
     }
 
     function updateKPIs() {
-      const total = rawTicketsData.length;
-      const anomalies = rawTicketsData.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id))).length;
+      const activeTickets = rawTicketsData.filter(t => (t.status || "").toLowerCase() !== 'closed');
+      const total = activeTickets.length;
+      const anomalies = activeTickets.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id))).length;
       
       document.getElementById('kpiTotal').textContent = total;
       document.getElementById('kpiAnomalies').textContent = anomalies;
       document.getElementById('kpiHealthy').textContent = total - anomalies;
 
-      // Status Counts
       const sCounts = { 'open': 0, 'in progress': 0, 'pending': 0, 'review': 0, 'awaiting response': 0 };
-      rawTicketsData.forEach(t => {
+      activeTickets.forEach(t => {
          const stat = (t.status || "").toLowerCase();
          if (sCounts[stat] !== undefined) sCounts[stat]++;
       });
@@ -577,14 +648,16 @@
       const tbody = document.getElementById('ticketTableBody');
       tbody.innerHTML = '';
 
+      // Only display non-closed tickets in the dashboard visually
       let filtered = rawTicketsData.filter(t => {
-        // OMNI-SEARCH STRINGS
+        const safeStatus = (t.status || "").toLowerCase();
+        if (safeStatus === 'closed') return false; 
+        
         const safeSubj = (t.subject || "").toLowerCase();
         const safeNum = String(t.ticketNumber || "").toLowerCase();
         const safeClient = (t.clientName || "").toLowerCase();
         const safeOwner = (t.owner || "").toLowerCase();
         const safePri = (t.priority || "").toLowerCase();
-        const safeStatus = (t.status || "").toLowerCase();
         const safeClass = (t.classification || "").toLowerCase();
         const safeMod = (t.module || "").toLowerCase();
         
@@ -681,9 +754,6 @@
 
         const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
-        // INSTANT LINK FIX: Generated dynamically using the ticket ID for all existing tickets
-        const correctUrl = `https://helpdesk.mindmatrix.net/agent/mindmatrixinc/all/tickets/details/${t.id}`;
-
         const tr = document.createElement('tr');
         tr.className = "rendered-row";
         tr.innerHTML = `
@@ -713,7 +783,7 @@
             ${aiActionHtml}
           </td>
           <td style="text-align: right; vertical-align: middle;">
-            <a href="${correctUrl}" target="_blank" class="btn btn-outline pop-bottom" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+            <a href="${t.url}" target="_blank" class="btn btn-outline pop-bottom" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
           </td>
         `;
         tbody.appendChild(tr);
@@ -729,8 +799,7 @@
       if (!currentFilteredData || !currentFilteredData.length) return showToast("No data to export.");
       let csv = 'Ticket #,Created Date,Client,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
       currentFilteredData.forEach(t => {
-        const correctUrl = `https://helpdesk.mindmatrix.net/agent/mindmatrixinc/all/tickets/details/${t.id}`;
-        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, correctUrl ];
+        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url ];
         csv += row.join(',') + '\n';
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
