@@ -132,10 +132,10 @@
     /* CONTROLS & DROPDOWNS */
     .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
     .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; }
-    .search-icon { position: absolute; left: 14px; opacity: 0.5; width: 16px; height: 16px; transition: opacity 0.3s ease; stroke: var(--text-main); }
+    .search-icon { position: absolute; left: 14px; opacity: 0.5; width: 16px; height: 16px; transition: all 0.3s ease; color: var(--text-main); z-index: 10; pointer-events: none; }
     .search-input { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem 0.7rem 2.6rem; border-radius: 12px; outline: none; font-size: 0.85rem; transition: all 0.3s ease; width: 100%; height: 42px; backdrop-filter: blur(10px); }
     .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--glass-bg); }
-    .search-input:focus + .search-icon { opacity: 1; stroke: var(--accent-primary); }
+    .search-input:focus + .search-icon { opacity: 1; color: var(--accent-primary); }
     
     .custom-dropdown { position: relative; min-width: 175px; font-size: 0.85rem; user-select: none; }
     .dropdown-selected { height: 42px; background: var(--glass-highlight); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0 2.2rem 0 1.2rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; backdrop-filter: blur(10px); }
@@ -186,11 +186,12 @@
     .ai-action-box { margin-top: 10px; background: rgba(56, 189, 248, 0.05); border-left: 3px solid var(--accent-primary); padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: all 0.3s ease; }
     .ai-action-box:hover { background: rgba(56, 189, 248, 0.08); }
 
-    /* LINK COLUMN HOVER ANIMATION (RIGHT SIDE) */
-    .link-cell-group { display: flex; align-items: center; justify-content: flex-end; gap: 0; transition: gap 0.3s ease; }
-    .link-cell-copy { width: 0; opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; cursor: pointer; color: var(--accent-primary); display: inline-flex; justify-content: center; align-items: center; overflow: hidden; }
-    .link-cell-group:hover { gap: 8px; }
-    .link-cell-group:hover .link-cell-copy { width: 24px; opacity: 1; transform: translateX(0); }
+    /* LINK COLUMN HOVER ANIMATION (ABSOLUTE POSITIONING PREVENTS LAYOUT BREAK) */
+    .link-cell-wrapper { position: relative; display: inline-flex; align-items: center; width: 85px; height: 30px; }
+    .link-cell-btn { position: absolute; right: 0; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2; margin: 0 !important; }
+    .link-cell-copy { position: absolute; right: 0; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; color: var(--accent-primary); z-index: 1; padding: 4px; display: flex; }
+    .link-cell-wrapper:hover .link-cell-btn { transform: translateX(-28px); }
+    .link-cell-wrapper:hover .link-cell-copy { opacity: 1; }
     .link-cell-copy:hover { color: var(--accent-hover); }
 
     /* SKELETON LOADER */
@@ -851,11 +852,11 @@
             ${aiActionHtml}
           </td>
           <td style="text-align: right; vertical-align: middle;">
-            <div class="link-cell-group">
-              <a href="${t.url}" target="_blank" class="btn btn-outline pop-bottom" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+            <div class="link-cell-wrapper">
               <span class="link-cell-copy pop-bottom" onclick="copyToCB('${t.url}')" data-tooltip="Copy URL">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               </span>
+              <a href="${t.url}" target="_blank" class="btn btn-outline pop-bottom link-cell-btn" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
             </div>
           </td>
         `;
