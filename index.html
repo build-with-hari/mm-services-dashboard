@@ -746,7 +746,7 @@
         if (safeStatus === 'closed') return false; 
         
         const safeSubj = (t.subject || "").toLowerCase();
-        const safeNum = String(t.ticketNumber || "").toLowerCase();
+        const safeNum = "#" + String(t.ticketNumber || "").toLowerCase(); // <--- ADDED THE "#" HERE
         const safeClient = (t.clientName || "").toLowerCase();
         const safeOwner = (t.owner || "").toLowerCase();
         const safePri = (t.priority || "").toLowerCase();
