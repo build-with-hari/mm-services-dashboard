@@ -129,9 +129,10 @@
     .kpi-value { font-size: 1.8rem; font-weight: 800; margin: 0.2rem 0; letter-spacing: -1px; transition: color 0.3s ease; }
     .kpi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
-    /* CONTROLS & DROPDOWNS */
+    /* CONTROLS & DROPDOWNS (WITH NEW ANIMATIONS) */
     .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
-    .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; }
+    .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .search-wrapper:focus-within { flex: 1.5; } /* Expands search bar smoothly when clicked */
     .search-icon { position: absolute; left: 14px; opacity: 0.5; width: 16px; height: 16px; transition: all 0.3s ease; color: var(--text-main); z-index: 10; pointer-events: none; }
     .search-input { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem 0.7rem 2.6rem; border-radius: 12px; outline: none; font-size: 0.85rem; transition: all 0.3s ease; width: 100%; height: 42px; backdrop-filter: blur(10px); }
     .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--glass-bg); }
@@ -143,10 +144,15 @@
     .dropdown-selected.active { border-color: var(--accent-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); background: var(--glass-bg); }
     .dropdown-arrow { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); pointer-events: none; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .dropdown-selected.active .dropdown-arrow { transform: translateY(-50%) rotate(180deg); stroke: var(--accent-primary); }
-    .dropdown-items { position: absolute; top: 100%; left: 0; right: 0; background: var(--header-bg); border: 1px solid var(--glass-border); border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); z-index: 99; display: none; max-height: 280px; overflow-y: auto; backdrop-filter: blur(30px); animation: fadeSlideUp 0.2s ease forwards; }
+    
+    /* Spring Bounce Animation for Dropdowns */
+    .dropdown-items { position: absolute; top: 100%; left: 0; right: 0; background: var(--header-bg); border: 1px solid var(--glass-border); border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); z-index: 99; display: none; max-height: 280px; overflow-y: auto; backdrop-filter: blur(30px); transform-origin: top center; animation: dropdownBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; }
+    @keyframes dropdownBounce { 0% { opacity: 0; transform: scaleY(0.8) translateY(-10px); } 100% { opacity: 1; transform: scaleY(1) translateY(0); } }
+    
     .dropdown-items div { padding: 0.8rem 1.2rem; cursor: pointer; color: var(--text-main); transition: all 0.2s ease; border-bottom: 1px solid rgba(255,255,255,0.02); }
     .dropdown-items div:last-child { border-bottom: none; }
     .dropdown-items div:hover { background: var(--glass-highlight); color: var(--accent-primary); padding-left: 1.5rem; }
+    .dropdown-items div:active { transform: scale(0.98); background: var(--glass-border); } /* Tactile click effect */
 
     /* TABLE */
     .table-container { max-height: calc(100vh - 150px); overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
@@ -201,10 +207,10 @@
     .pop-align-right.pop-bottom[data-tooltip]::after { transform: translateX(0) translateY(-5px) !important; }
     .pop-align-right[data-tooltip]:hover::before, .pop-align-right[data-tooltip]:hover::after { transform: translateX(0) translateY(0) !important; }
 
-    /* SKELETON LOADER */
-    .skeleton-row { animation: pulse 1.5s infinite ease-in-out; }
-    .skeleton-box { height: 16px; background: var(--glass-border); border-radius: 6px; margin-bottom: 8px; }
-    @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
+    /* PREMIUM SKELETON SHIMMER */
+    .skeleton-box { height: 16px; border-radius: 6px; margin-bottom: 8px; background: var(--glass-highlight); position: relative; overflow: hidden; }
+    .skeleton-box::after { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, var(--glass-border), transparent); transform: translateX(-100%); animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
 
     /* TOAST */
     #toastContainer { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
@@ -310,7 +316,7 @@
         <div class="controls-bar">
           <div class="search-wrapper">
             <svg class="search-icon svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search Omni (Subject, Client, Status, Module, Owner...)" oninput="applyFilters()">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search (Subject, Client, Status, Module, Owner...)" oninput="applyFilters()">
           </div>
           
           <div class="custom-dropdown" id="dd-owner" data-value="ALL">
@@ -665,6 +671,29 @@
       applyFilters();
     }
 
+    // Number Rolling Engine
+    function animateCounter(elementId, newValue) {
+      const obj = document.getElementById(elementId);
+      if (!obj) return;
+      const startVal = parseInt(obj.textContent) || 0;
+      if (startVal === newValue) { obj.textContent = newValue; return; }
+      
+      const duration = 800; // Time in milliseconds for the roll effect
+      let startTime = null;
+      
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        // Ease-out Quart mathematical curve for satisfying deceleration
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4); 
+        obj.textContent = Math.floor(easeOutQuart * (newValue - startVal) + startVal);
+        
+        if (progress < 1) window.requestAnimationFrame(step);
+        else obj.textContent = newValue;
+      };
+      window.requestAnimationFrame(step);
+    }
+
     function updateKPIs(ticketList) {
       // Use the dynamically filtered list (or fallback to raw data if none provided)
       const data = ticketList || rawTicketsData;
@@ -673,9 +702,10 @@
       const total = activeTickets.length;
       const anomalies = activeTickets.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id))).length;
       
-      document.getElementById('kpiTotal').textContent = total;
-      document.getElementById('kpiAnomalies').textContent = anomalies;
-      document.getElementById('kpiHealthy').textContent = total - anomalies;
+      // Trigger the number rolling animations
+      animateCounter('kpiTotal', total);
+      animateCounter('kpiAnomalies', anomalies);
+      animateCounter('kpiHealthy', total - anomalies);
 
       const sCounts = { 'open': 0, 'in progress': 0, 'pending': 0, 'review': 0, 'awaiting response': 0 };
       activeTickets.forEach(t => {
@@ -683,11 +713,11 @@
          if (sCounts[stat] !== undefined) sCounts[stat]++;
       });
 
-      document.getElementById('kpiOpen').textContent = sCounts['open'];
-      document.getElementById('kpiInProgress').textContent = sCounts['in progress'];
-      document.getElementById('kpiPending').textContent = sCounts['pending'];
-      document.getElementById('kpiReview').textContent = sCounts['review'];
-      document.getElementById('kpiAwaiting').textContent = sCounts['awaiting response'];
+      animateCounter('kpiOpen', sCounts['open']);
+      animateCounter('kpiInProgress', sCounts['in progress']);
+      animateCounter('kpiPending', sCounts['pending']);
+      animateCounter('kpiReview', sCounts['review']);
+      animateCounter('kpiAwaiting', sCounts['awaiting response']);
     }
 
     function setKpiFilter(filter) {
