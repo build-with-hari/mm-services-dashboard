@@ -342,6 +342,7 @@
               <div data-value="SLA Breached">SLA Breached</div>
               <div data-value="Customer Waiting">Customer Waiting</div>
               <div data-value="Stale Ticket">Stale Ticket</div>
+              <div data-value="Awaiting Fix">Awaiting Fix (Acknowledged)</div>
             </div>
           </div>
           
@@ -898,8 +899,13 @@
           const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
           const isActivelyFlagged = isAnomalyRaw && !isDismissed;
           
-          if (anomalyFilter === 'Healthy') mAnomaly = !isActivelyFlagged;
-          else mAnomaly = (safeAnomaly === anomalyFilter.toLowerCase()) && !isDismissed;
+          if (anomalyFilter === 'Healthy') {
+             mAnomaly = !isActivelyFlagged;
+          } else if (anomalyFilter === 'Awaiting Fix') {
+             mAnomaly = isDismissed; // Only show acknowledged tickets
+          } else {
+             mAnomaly = (safeAnomaly === anomalyFilter.toLowerCase()) && !isDismissed;
+          }
         }
 
         const mOwner = owner === 'ALL' || t.owner === owner;
