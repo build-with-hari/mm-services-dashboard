@@ -157,9 +157,9 @@
     .dropdown-items div:active { transform: scale(0.98); background: var(--glass-border); }
 
     /* FLOATING CLEAR ALL BUTTON */
-    .fab-clear { position: fixed; bottom: 30px; left: 30px; background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--danger-color); padding: 12px 24px; border-radius: 99px; font-weight: 700; font-size: 0.85rem; cursor: grab; display: flex; align-items: center; gap: 8px; z-index: 10000; backdrop-filter: blur(15px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease; opacity: 0; pointer-events: none; transform: translateY(20px); user-select: none; }
+    .fab-clear { position: fixed; bottom: 30px; left: 30px; background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--danger-color); padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 6px; z-index: 10000; backdrop-filter: blur(15px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease; opacity: 0; pointer-events: none; transform: translateY(20px); user-select: none; }
     .fab-clear.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-    .fab-clear:active { cursor: grabbing; transform: scale(0.95); }
+    .fab-clear:active { transform: scale(0.95); }
     .fab-clear:hover { background: rgba(248, 113, 113, 0.25); box-shadow: 0 12px 30px rgba(248, 113, 113, 0.2); }
 
     /* TABLE */
@@ -234,8 +234,8 @@
   <div id="toastContainer"></div>
 
   <!-- FLOATING CLEAR BUTTON (Draggable) -->
-  <div id="floatingClearBtn" class="fab-clear" title="Clear All Selected Filters">
-    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+  <div id="floatingClearBtn" class="fab-clear" data-tooltip="Clear All Selected Filters">
+    <svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
     Clear Filters
   </div>
 
