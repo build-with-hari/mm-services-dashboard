@@ -134,9 +134,14 @@
     .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     .search-wrapper:focus-within { flex: 1.5; } /* Expands search bar smoothly when clicked */
     .search-icon { position: absolute; left: 14px; opacity: 0.5; width: 16px; height: 16px; transition: all 0.3s ease; color: var(--text-main); z-index: 10; pointer-events: none; }
-    .search-input { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 1.2rem 0.7rem 2.6rem; border-radius: 12px; outline: none; font-size: 0.85rem; transition: all 0.3s ease; width: 100%; height: 42px; backdrop-filter: blur(10px); }
+    .search-input { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 2.6rem 0.7rem 2.6rem; border-radius: 12px; outline: none; font-size: 0.85rem; transition: all 0.3s ease; width: 100%; height: 42px; backdrop-filter: blur(10px); }
     .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--glass-bg); }
     .search-input:focus + .search-icon { opacity: 1; color: var(--accent-primary); }
+    
+    /* Search Clear (X) Button */
+    .search-clear { position: absolute; right: 14px; opacity: 0; width: 16px; height: 16px; cursor: pointer; color: var(--text-muted); transition: all 0.3s ease; pointer-events: none; z-index: 10; }
+    .search-clear.visible { opacity: 1; pointer-events: auto; }
+    .search-clear:hover { color: var(--danger-color); }
     
     .custom-dropdown { position: relative; min-width: 175px; font-size: 0.85rem; user-select: none; }
     .dropdown-selected { height: 42px; background: var(--glass-highlight); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0 2.2rem 0 1.2rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; backdrop-filter: blur(10px); }
@@ -317,6 +322,18 @@
           <div class="search-wrapper">
             <svg class="search-icon svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input type="text" id="searchInput" class="search-input" placeholder="Search (Subject, Client, Status, Module, Owner...)" oninput="applyFilters()">
+            <svg class="search-clear svg-icon" viewBox="0 0 24 24" onclick="clearSearch()"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </div>
+
+          <div class="custom-dropdown" id="dd-anomaly" data-value="ALL">
+            <div class="dropdown-selected">All Health Statuses <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+            <div class="dropdown-items">
+              <div data-value="ALL">All Health Statuses</div>
+              <div data-value="Healthy">Healthy Only</div>
+              <div data-value="SLA Breached">SLA Breached</div>
+              <div data-value="Customer Waiting">Customer Waiting</div>
+              <div data-value="Stale Ticket">Stale Ticket</div>
+            </div>
           </div>
           
           <div class="custom-dropdown" id="dd-owner" data-value="ALL">
@@ -732,27 +749,42 @@
       applyFilters();
     }
 
+    function clearSearch() {
+      const input = document.getElementById('searchInput');
+      input.value = '';
+      applyFilters();
+      input.focus();
+    }
+
     function applyFilters() {
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      // Toggle Clear (X) button visibility
+      const clearBtn = document.querySelector('.search-clear');
+      if (query.length > 0) clearBtn.classList.add('visible');
+      else clearBtn.classList.remove('visible');
+
       const owner = document.getElementById('dd-owner').getAttribute('data-value');
       const priority = document.getElementById('dd-priority').getAttribute('data-value');
+      const anomalyFilter = document.getElementById('dd-anomaly').getAttribute('data-value');
       const sortVal = document.getElementById('dd-sort').getAttribute('data-value');
       const tbody = document.getElementById('ticketTableBody');
       tbody.innerHTML = '';
 
-      // STEP 1: Apply Base Filters (Search Query, Owner Dropdown, Priority Dropdown)
+      // STEP 1: Apply Base Filters (Search Query, Owner, Priority, Anomaly)
       let baseFiltered = rawTicketsData.filter(t => {
         const safeStatus = (t.status || "").toLowerCase();
         if (safeStatus === 'closed') return false; 
         
         const safeSubj = (t.subject || "").toLowerCase();
-        const safeNum = "#" + String(t.ticketNumber || "").toLowerCase(); // <--- ADDED THE "#" HERE
+        const safeNum = "#" + String(t.ticketNumber || "").toLowerCase();
         const safeClient = (t.clientName || "").toLowerCase();
         const safeOwner = (t.owner || "").toLowerCase();
         const safePri = (t.priority || "").toLowerCase();
         const safeClass = (t.classification || "").toLowerCase();
         const safeMod = (t.module || "").toLowerCase();
-        const safeDept = (t.department || "").toLowerCase(); // <--- ADDED THIS LINE
+        const safeDept = (t.department || "").toLowerCase();
+        const safeAnomaly = (t.anomalyType || "").toLowerCase();
 
         const mQuery = !query || 
           safeSubj.includes(query) || 
@@ -773,7 +805,14 @@
         if (priority === 'Medium') mPri = safePri === 'medium';
         if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
 
-        return mQuery && mOwner && mPri;
+        let mAnomaly = true;
+        if (anomalyFilter !== 'ALL') {
+          // Exclude dismissed tickets from the dropdown filtering
+          const isDismissed = acknowledgedTickets.includes(String(t.id));
+          mAnomaly = (safeAnomaly === anomalyFilter.toLowerCase()) && !isDismissed;
+        }
+
+        return mQuery && mOwner && mPri && mAnomaly;
       });
 
       // STEP 2: Dynamically Update KPI Tiles based on the active search/dropdowns!
