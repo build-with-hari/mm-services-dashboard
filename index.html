@@ -186,13 +186,20 @@
     .ai-action-box { margin-top: 10px; background: rgba(56, 189, 248, 0.05); border-left: 3px solid var(--accent-primary); padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: all 0.3s ease; }
     .ai-action-box:hover { background: rgba(56, 189, 248, 0.08); }
 
-    /* LINK COLUMN HOVER ANIMATION (ABSOLUTE POSITIONING PREVENTS LAYOUT BREAK) */
-    .link-cell-wrapper { position: relative; display: inline-flex; align-items: center; width: 85px; height: 30px; }
+    /* LINK COLUMN HOVER ANIMATION (NARROWER WIDTH PREVENTS SCROLLBAR) */
+    .link-cell-wrapper { position: relative; display: flex; align-items: center; justify-content: flex-end; width: 75px; height: 30px; margin-left: auto; }
     .link-cell-btn { position: absolute; right: 0; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2; margin: 0 !important; }
     .link-cell-copy { position: absolute; right: 0; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; color: var(--accent-primary); z-index: 1; padding: 4px; display: flex; }
-    .link-cell-wrapper:hover .link-cell-btn { transform: translateX(-28px); }
+    .link-cell-wrapper:hover .link-cell-btn { transform: translateX(-26px); }
     .link-cell-wrapper:hover .link-cell-copy { opacity: 1; }
     .link-cell-copy:hover { color: var(--accent-hover); }
+
+    /* RIGHT-ALIGNED TOOLTIP (PREVENTS CUTOFF ON SCREEN EDGE) */
+    .pop-align-right[data-tooltip]::before { left: auto !important; right: 0 !important; transform: translateX(0) translateY(5px) !important; }
+    .pop-align-right[data-tooltip]::after { left: auto !important; right: 12px !important; transform: translateX(0) translateY(5px) !important; }
+    .pop-align-right.pop-bottom[data-tooltip]::before { transform: translateX(0) translateY(-5px) !important; }
+    .pop-align-right.pop-bottom[data-tooltip]::after { transform: translateX(0) translateY(-5px) !important; }
+    .pop-align-right[data-tooltip]:hover::before, .pop-align-right[data-tooltip]:hover::after { transform: translateX(0) translateY(0) !important; }
 
     /* SKELETON LOADER */
     .skeleton-row { animation: pulse 1.5s infinite ease-in-out; }
@@ -351,8 +358,8 @@
                 <th style="width: 10%;">Status</th>
                 <th style="width: 12%;">Module & Class</th>
                 <th style="width: 12%;">AI Status</th>
-                <th style="width: 24%;">Subject & Executive Summary</th>
-                <th style="width: 6%; text-align: right;">Link</th>
+                <th style="width: 22%;">Subject & Executive Summary</th>
+                <th style="width: 8%; text-align: right; padding-right: 1.5rem;">Link</th>
               </tr>
             </thead>
             <tbody id="ticketTableBody"></tbody>
@@ -853,10 +860,10 @@
           </td>
           <td style="text-align: right; vertical-align: middle;">
             <div class="link-cell-wrapper">
-              <span class="link-cell-copy pop-bottom" onclick="copyToCB('${t.url}')" data-tooltip="Copy URL">
+              <span class="link-cell-copy pop-bottom pop-align-right" onclick="copyToCB('${t.url}')" data-tooltip="Copy URL">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               </span>
-              <a href="${t.url}" target="_blank" class="btn btn-outline pop-bottom link-cell-btn" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+              <a href="${t.url}" target="_blank" class="btn btn-outline pop-bottom pop-align-right link-cell-btn" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
             </div>
           </td>
         `;
