@@ -450,6 +450,21 @@
       acknowledgedTickets = [];
     }
 
+    // --- AUTO REFRESH ENGINE ---
+    let autoRefreshTimer = null;
+
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      // Silently refresh the dashboard every 5 minutes (300,000 milliseconds)
+      autoRefreshTimer = setInterval(() => {
+        loadDashboardData(false, true); // true = run in silent mode
+      }, 300000); 
+    }
+
+    function stopAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    }
+
     const icons = {
       moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>',
       sun: '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'
@@ -470,6 +485,7 @@
         if (userName) document.getElementById('userGreeting').textContent = "Hi, " + userName.split(' ')[0];
         showDashboardUI();
         loadDashboardData(false);
+        startAutoRefresh(); // <--- ADD THIS LINE
       } else {
         localStorage.removeItem('mm_ticket_session');
         showAuthUI();
@@ -632,6 +648,7 @@
           showToast("Successfully authenticated!");
           showDashboardUI();
           loadDashboardData(false);
+          startAutoRefresh();
         } else {
           showAuthError(data.message || "Authentication failed.");
         }
@@ -699,13 +716,22 @@
       }
     }
 
-    function loadDashboardData(forceRefresh) {
-      showSkeletons();
+    function triggerSync(forceZoho) { loadDashboardData(forceZoho, false); }
+
+    function loadDashboardData(forceRefresh, isSilent = false) {
       const btnId = forceRefresh ? 'zohoBtn' : 'refreshBtn';
       const btn = document.getElementById(btnId);
       const originalText = btn.innerHTML;
-      btn.innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Syncing...`;
-      btn.disabled = true;
+      
+      // If it's a manual click, show skeletons and disable button. 
+      // If it's an auto-refresh, just spin the timestamp silently.
+      if (!isSilent) {
+        showSkeletons();
+        btn.innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Syncing...`;
+        btn.disabled = true;
+      } else {
+        document.getElementById('kpiLastSync').innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Auto-syncing...`;
+      }
 
       const token = localStorage.getItem('mm_ticket_session');
 
@@ -722,22 +748,24 @@
           document.getElementById('kpiLastSync').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ` + (res.data.lastRefreshed || "--");
           updateKPIs();
           applyFilters();
-          if (forceRefresh) showToast("Dashboard synchronized successfully.");
+          if (forceRefresh && !isSilent) showToast("Dashboard synchronized successfully.");
         } else if (res.error === "SESSION_EXPIRED") {
           showToast("Session expired. Please log in again.");
           logout();
         } else {
-          showToast("Error: " + res.message);
-          document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to load data.</td></tr>`;
+          if (!isSilent) showToast("Error: " + res.message);
+          if (!isSilent) document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to load data.</td></tr>`;
         }
       })
       .catch(err => {
-        showToast("Error loading data. Check console for details.");
-        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to retrieve data.</td></tr>`;
+        if (!isSilent) showToast("Error loading data. Check console for details.");
+        if (!isSilent) document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to retrieve data.</td></tr>`;
       })
       .finally(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        if (!isSilent) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
       });
     }
 
@@ -1076,7 +1104,7 @@
       document.getElementById('authPanel').style.display = 'flex'; 
       document.getElementById('dashboardPanel').style.display = 'none'; 
     }
-    function logout() { localStorage.clear(); showAuthUI(); showToast("Signed out."); }
+    function logout() { stopAutoRefresh(); localStorage.clear(); showAuthUI(); showToast("Signed out."); }
     function toggleTheme() {
       const nt = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', nt);
