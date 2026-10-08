@@ -507,6 +507,12 @@
     let notifications = JSON.parse(localStorage.getItem('mm_notifications') || '[]');
     let notifiedAnomalies = JSON.parse(localStorage.getItem('mm_notified_anomalies') || '{}');
 
+    // LEGACY FIX: Give any older notifications a unique ID so they can be deleted
+    notifications.forEach((n, index) => {
+      if (!n.id) n.id = 'notif_legacy_' + Date.now() + '_' + index;
+    });
+    localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+
     function getRelativeTimeET(dateString) {
       if (!dateString) return "Unknown";
       const dObj = new Date(dateString);
@@ -584,7 +590,8 @@
          el.style.opacity = '0';
          el.style.transform = 'translateX(50px)';
          setTimeout(() => {
-             notifications = notifications.filter(n => n.id !== id);
+             // Safely filter out the notification using strict String matching
+             notifications = notifications.filter(n => String(n.id) !== String(id));
              localStorage.setItem('mm_notifications', JSON.stringify(notifications));
              updateNotificationUI();
          }, 300);
