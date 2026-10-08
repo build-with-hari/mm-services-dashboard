@@ -1253,16 +1253,17 @@
         const isDismissed = acknowledgedTickets.includes(String(t.id));
         const isOverloaded = (t.anomalyType === "API Overloaded" || (t.aiSummary || "").includes("free-tier"));
 
-        // Inject Dynamic Live Countdown for "At Risk" minutes
+        // Inject Dynamic Live Countdown (Using Absolute Backend Target Time)
         let parsedSummary = t.aiSummary || "";
-        if (parsedSummary.match(/(\d+)\s+minutes/)) {
-            parsedSummary = parsedSummary.replace(/(\d+)\s+minutes/, (match, p1) => {
-                const targetMs = Date.now() + (parseInt(p1, 10) * 60000);
-                return `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.05em;">${p1}</span> minutes`;
-            });
+        const targetMatch = parsedSummary.match(/\[target:(\d+)\]/);
+        if (targetMatch) {
+            const targetMs = parseInt(targetMatch[1], 10);
+            const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
+            // Strip the metadata tag and inject the live ticking span
+            parsedSummary = parsedSummary.replace(/\d+\s+minutes\.\[target:\d+\]/, `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.05em;">${minsLeft}</span> minutes.`);
         }
 
-        // Trigger Proactive Alerts for New Breaches (Uses parsedSummary so Toasts tick down too!)
+        // Trigger Proactive Alerts for New Breaches
         if (isAnomaly && !isDismissed && !isOverloaded) {
             triggerAlert(t.ticketNumber, t.anomalyType || 'SLA Warning', parsedSummary || 'Action required on ticket.');
         }
