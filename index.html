@@ -167,13 +167,13 @@
     .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: #fff; font-size: 0.65rem; font-weight: bold; height: 18px; min-width: 18px; border-radius: 99px; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0); transition: all 0.3s ease; border: 2px solid var(--glass-bg); padding: 0 4px; pointer-events: none; z-index: 2; }
     .notif-badge.active { opacity: 1; transform: scale(1); }
     
-    .notif-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 320px; background: var(--header-bg); border: 1px solid var(--glass-border); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); backdrop-filter: blur(30px); z-index: 100; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s ease; }
-    .notif-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .notif-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 340px; background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); z-index: 100; opacity: 0; visibility: hidden; transform-origin: top right; }
+    .notif-dropdown.open { opacity: 1; visibility: visible; animation: dropdownBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; }
     .notif-header { padding: 12px 15px; border-bottom: 1px solid var(--glass-border); font-weight: 700; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-    .notif-body { max-height: 300px; overflow-y: auto; scrollbar-width: thin; }
-    .notif-item { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.8rem; cursor: pointer; transition: background 0.2s; }
+    .notif-body { max-height: 350px; overflow-y: auto; scrollbar-width: thin; overflow-x: hidden; }
+    .notif-item { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.8rem; transition: all 0.3s ease; }
     .notif-item:hover { background: var(--glass-highlight); }
-    .notif-item strong { color: var(--accent-primary); display: block; margin-bottom: 2px; }
+    .notif-item strong { color: var(--accent-primary); display: block; margin-bottom: 2px; font-size: 0.85rem; }
     .notif-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
     #toastContainer { 
@@ -186,11 +186,11 @@
       gap: 12px; 
       align-items: flex-end; 
       pointer-events: none; 
-      max-height: calc(100vh - 120px); /* Prevents the stack from ever hitting the top header */
-      overflow: hidden; /* Cleanly hides excess toasts */
-      padding: 10px; /* Safe padding for shadow visibility */
+      max-height: calc(100vh - 120px); 
+      overflow: hidden; 
+      padding: 10px; 
     }
-    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; max-width: 350px; }
+    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; max-width: 350px; transition: opacity 0.3s ease, transform 0.3s ease; }
     .toast-close { cursor: pointer; opacity: 0.6; padding: 4px; transition: 0.2s; border-radius: 4px; display: flex; }
     .toast-close:hover { opacity: 1; background: var(--glass-highlight); }
     .toast-clear-all { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-muted); padding: 6px 14px; border-radius: 99px; font-size: 0.75rem; cursor: pointer; backdrop-filter: blur(10px); pointer-events: auto; transition: 0.2s; opacity: 0; margin-bottom: 4px; }
@@ -530,21 +530,23 @@
     }
 
     function triggerAlert(ticketNum, title, message) {
-      const alertId = ticketNum + "-" + title;
-      if (notifiedAnomalies[alertId]) return; // Prevent duplicate pings
+      const alertKey = ticketNum + "-" + title;
+      if (notifiedAnomalies[alertKey]) return; // Prevent duplicate pings
       
-      notifiedAnomalies[alertId] = true;
+      notifiedAnomalies[alertKey] = true;
       localStorage.setItem('mm_notified_anomalies', JSON.stringify(notifiedAnomalies));
       
       const timeET = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-      notifications.unshift({ ticket: ticketNum, title: title, message: message, time: timeET });
+      const uniqueId = 'notif_' + Date.now() + '_' + ticketNum; // Generate safe unique ID
+      
+      notifications.unshift({ id: uniqueId, ticket: ticketNum, title: title, message: message, time: timeET });
       if (notifications.length > 50) notifications.pop(); // Keep only last 50 alerts
       
       localStorage.setItem('mm_notifications', JSON.stringify(notifications));
       updateNotificationUI();
       
       // Fire an un-expiring red toast for anomalies
-      showToast(`<strong>#${ticketNum} - ${title}</strong><br><span style="font-weight:400;">${message}</span>`, true);
+      showToast(`<strong>#${ticketNum} - ${title}</strong><br><span style="font-weight:400; font-size:0.8rem;">${message}</span>`, true);
     }
 
     function updateNotificationUI() {
@@ -556,15 +558,36 @@
       if (notifications.length > 0) {
         badge.classList.add('active');
         body.innerHTML = notifications.map(n => `
-          <div class="notif-item">
-            <div style="font-size: 0.65rem; color: var(--text-muted); float: right;">${n.time}</div>
-            <strong>#${n.ticket} - ${n.title}</strong>
-            <div style="color: var(--text-main); margin-top: 4px;">${n.message}</div>
+          <div class="notif-item" id="${n.id}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+              <strong>#${n.ticket} - ${n.title}</strong>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.65rem; color: var(--text-muted);">${n.time}</span>
+                <svg class="toast-close" onclick="dismissNotification(event, '${n.id}')" style="width:18px;height:18px; color:var(--text-muted); padding:2px;" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line></svg>
+              </div>
+            </div>
+            <div style="color: var(--text-main); font-size: 0.8rem; line-height: 1.3;">${n.message}</div>
           </div>
         `).join('');
       } else {
         badge.classList.remove('active');
         body.innerHTML = '<div class="notif-empty">No recent alerts.</div>';
+      }
+    }
+
+    function dismissNotification(event, id) {
+      event.stopPropagation(); // Prevents dropdown from accidentally closing
+      
+      const el = document.getElementById(id);
+      if (el) {
+         // Slide out animation
+         el.style.opacity = '0';
+         el.style.transform = 'translateX(50px)';
+         setTimeout(() => {
+             notifications = notifications.filter(n => n.id !== id);
+             localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+             updateNotificationUI();
+         }, 300);
       }
     }
 
@@ -1286,8 +1309,12 @@
         clearBtn.className = 'toast-clear-all';
         clearBtn.textContent = 'Clear All';
         clearBtn.onclick = () => {
-          document.querySelectorAll('.toast').forEach(t => t.remove());
-          checkToasts();
+          document.querySelectorAll('.toast').forEach(t => {
+             t.style.opacity = '0';
+             t.style.transform = 'translateX(50px) scale(0.9)';
+             setTimeout(() => t.remove(), 300);
+          });
+          setTimeout(checkToasts, 350);
         };
         tc.appendChild(clearBtn);
       }
@@ -1302,8 +1329,8 @@
       t.innerHTML = `
         ${icon} 
         <div style="flex-grow: 1;">${msg}</div>
-        <div class="toast-close" onclick="this.parentElement.remove(); checkToasts();">
-          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <div class="toast-close" onclick="this.parentElement.style.opacity='0'; this.parentElement.style.transform='translateX(50px) scale(0.9)'; setTimeout(() => { this.parentElement.remove(); checkToasts(); }, 300);">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       `;
       
@@ -1316,7 +1343,7 @@
         setTimeout(() => { 
           t.style.opacity = '0'; 
           t.style.transform = 'translateX(50px) scale(0.9)'; 
-          setTimeout(() => { t.remove(); checkToasts(); }, 400); 
+          setTimeout(() => { t.remove(); checkToasts(); }, 300); 
         }, 3000);
       }
     }
