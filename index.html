@@ -1260,7 +1260,7 @@
             const targetMs = parseInt(targetMatch[1], 10);
             const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
             // Strip the metadata tag and inject the live ticking span
-            parsedSummary = parsedSummary.replace(/\d+\s+minutes\.\[target:\d+\]/, `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.05em;">${minsLeft}</span> minutes.`);
+            parsedSummary = parsedSummary.replace(/\d+\s+minutes\[target:\d+\]/, `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.05em;">${minsLeft}</span> minutes.`);
         }
 
         // Trigger Proactive Alerts for New Breaches
