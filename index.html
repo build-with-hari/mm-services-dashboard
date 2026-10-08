@@ -169,6 +169,8 @@
     
     .notif-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 340px; background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); z-index: 100; opacity: 0; visibility: hidden; transform-origin: top right; }
     .notif-dropdown.open { opacity: 1; visibility: visible; animation: dropdownBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; }
+    .notif-dropdown.closing { animation: dropdownClose 0.2s ease forwards; }
+    @keyframes dropdownClose { 0% { opacity: 1; transform: scale(1); visibility: visible; } 100% { opacity: 0; transform: scale(0.95); visibility: hidden; } }
     .notif-header { padding: 12px 15px; border-bottom: 1px solid var(--glass-border); font-weight: 700; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
     .notif-body { max-height: 350px; overflow-y: auto; scrollbar-width: thin; overflow-x: hidden; }
     .notif-item { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.8rem; transition: all 0.3s ease; }
@@ -599,21 +601,49 @@
     }
 
     function toggleNotifications() {
-      document.getElementById('notifDropdown').classList.toggle('open');
+      const dd = document.getElementById('notifDropdown');
+      if (dd.classList.contains('open')) {
+        closeNotifDropdown();
+      } else {
+        dd.classList.remove('closing');
+        dd.classList.add('open');
+      }
+    }
+
+    function closeNotifDropdown() {
+      const dd = document.getElementById('notifDropdown');
+      if (dd && dd.classList.contains('open')) {
+        dd.classList.remove('open');
+        dd.classList.add('closing');
+        setTimeout(() => dd.classList.remove('closing'), 200);
+      }
     }
 
     function clearNotifications() {
-      notifications = [];
-      localStorage.removeItem('mm_notifications');
-      updateNotificationUI();
-      document.getElementById('notifDropdown').classList.remove('open');
+      const items = document.querySelectorAll('.notif-item');
+      if (items.length > 0) {
+         // Slide out all notifications simultaneously
+         items.forEach(item => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(50px)';
+         });
+         // Wait for the animation to finish before updating memory and UI
+         setTimeout(() => {
+            notifications = [];
+            localStorage.removeItem('mm_notifications');
+            updateNotificationUI();
+         }, 300);
+      } else {
+         notifications = [];
+         localStorage.removeItem('mm_notifications');
+         updateNotificationUI();
+      }
     }
 
     // Close Bell dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#notifWrapper')) {
-        const dd = document.getElementById('notifDropdown');
-        if (dd) dd.classList.remove('open');
+        closeNotifDropdown();
       }
     });
 
@@ -1178,8 +1208,12 @@
       filtered.forEach(t => {
         const dObj = new Date(t.createdDate);
         const dMod = new Date(t.modifiedDate);
+        
         // Use human relative timestamps (e.g. "2 hours ago")
         const dStr = getRelativeTimeET(t.createdDate);
+        
+        // Exact Date string for the hover Tooltip
+        const exactDateStr = isNaN(dObj) ? "Unknown" : dObj.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
         
         let agingHtml = '';
         if (!isNaN(dMod)) {
@@ -1235,7 +1269,7 @@
         tr.innerHTML = `
           <td>
             <strong class="copyable" onclick="copyToCB('${t.ticketNumber}')" data-tooltip="Copy ID" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}${copySvg}</strong><br>
-            <small style="color: var(--text-muted);">${dStr}</small><br>${agingHtml}
+            <small class="pop-bottom" data-tooltip="${exactDateStr}" style="color: var(--text-muted); cursor: help; border-bottom: 1px dotted rgba(148, 163, 184, 0.5); padding-bottom: 1px;">${dStr}</small><br>${agingHtml}
           </td>
           <td>
             <strong class="copyable" onclick="copyToCB('${t.clientName}')" data-tooltip="Copy Client" style="color: var(--text-main);">${t.clientName}${copySvg}</strong><br>${deptPill}
