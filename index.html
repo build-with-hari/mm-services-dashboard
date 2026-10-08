@@ -192,12 +192,14 @@
       overflow: hidden; 
       padding: 10px; 
     }
-    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; max-width: 350px; transition: opacity 0.3s ease, transform 0.3s ease; }
+    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; width: 350px; box-sizing: border-box; transition: opacity 0.3s ease, transform 0.3s ease; }
     .toast-close { cursor: pointer; opacity: 0.6; padding: 4px; transition: 0.2s; border-radius: 4px; display: flex; }
     .toast-close:hover { opacity: 1; background: var(--glass-highlight); }
-    .toast-clear-all { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-muted); padding: 6px 14px; border-radius: 99px; font-size: 0.75rem; cursor: pointer; backdrop-filter: blur(10px); pointer-events: auto; transition: 0.2s; opacity: 0; margin-bottom: 4px; }
-    .toast-clear-all.visible { opacity: 1; }
-    .toast-clear-all:hover { background: var(--glass-highlight); color: var(--text-main); }
+    
+    .toast-clear-all { background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--danger-color); padding: 8px 16px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; cursor: pointer; backdrop-filter: blur(15px); pointer-events: none; transition: all 0.3s ease; opacity: 0; transform: translateY(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 4px; display: flex; align-items: center; gap: 6px; user-select: none; }
+    .toast-clear-all.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .toast-clear-all:hover { background: rgba(248, 113, 113, 0.25); box-shadow: 0 12px 30px rgba(248, 113, 113, 0.2); }
+    .toast-clear-all:active { transform: scale(0.95); }
 
     /* TABLE */
     .table-container { max-height: calc(100vh - 150px); overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
@@ -1354,7 +1356,7 @@
         clearBtn = document.createElement('button');
         clearBtn.id = 'toastClearAllBtn';
         clearBtn.className = 'toast-clear-all';
-        clearBtn.textContent = 'Clear All';
+        clearBtn.innerHTML = `<svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Clear All`;
         clearBtn.onclick = () => {
           document.querySelectorAll('.toast').forEach(t => {
              t.style.opacity = '0';
