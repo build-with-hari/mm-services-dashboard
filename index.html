@@ -664,6 +664,19 @@
       if (autoRefreshTimer) clearInterval(autoRefreshTimer);
     }
 
+    // --- LIVE COUNTDOWN ENGINE ---
+    setInterval(() => {
+      document.querySelectorAll('.live-countdown').forEach(el => {
+        const targetMs = parseInt(el.getAttribute('data-target'), 10);
+        if (!isNaN(targetMs)) {
+          const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
+          if (el.textContent !== String(minsLeft)) {
+             el.textContent = minsLeft;
+          }
+        }
+      });
+    }, 10000); // Ticks and updates the DOM every 10 seconds
+
     const icons = {
       moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>',
       sun: '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'
@@ -1240,13 +1253,22 @@
         const isDismissed = acknowledgedTickets.includes(String(t.id));
         const isOverloaded = (t.anomalyType === "API Overloaded" || (t.aiSummary || "").includes("free-tier"));
 
-        // Trigger Proactive Alerts for New Breaches
+        // Inject Dynamic Live Countdown for "At Risk" minutes
+        let parsedSummary = t.aiSummary || "";
+        if (parsedSummary.match(/(\d+)\s+minutes/)) {
+            parsedSummary = parsedSummary.replace(/(\d+)\s+minutes/, (match, p1) => {
+                const targetMs = Date.now() + (parseInt(p1, 10) * 60000);
+                return `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.05em;">${p1}</span> minutes`;
+            });
+        }
+
+        // Trigger Proactive Alerts for New Breaches (Uses parsedSummary so Toasts tick down too!)
         if (isAnomaly && !isDismissed && !isOverloaded) {
-            triggerAlert(t.ticketNumber, t.anomalyType || 'SLA Warning', t.aiSummary || 'Action required on ticket.');
+            triggerAlert(t.ticketNumber, t.anomalyType || 'SLA Warning', parsedSummary || 'Action required on ticket.');
         }
         
         let badgeHtml = '';
-        if (t.aiSummary === "Pending AI") {
+        if (parsedSummary === "Pending AI") {
             badgeHtml = `<span class="badge badge-processing"><svg class="inline-icon spin" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Analyzing</span>`;
         } else if (isOverloaded) {
             badgeHtml = `<span class="badge badge-warning"><svg class="inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Overloaded</span>`;
@@ -1258,7 +1280,7 @@
             badgeHtml = `<span class="badge badge-normal"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Healthy</span>`;
         }
 
-        const displaySummary = (t.aiSummary === "Pending AI") ? "<em>AI is reviewing thread in background...</em>" : t.aiSummary;
+        const displaySummary = (parsedSummary === "Pending AI") ? "<em>AI is reviewing thread in background...</em>" : parsedSummary;
         let aiActionHtml = '';
         
         if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
