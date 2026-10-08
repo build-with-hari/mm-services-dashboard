@@ -364,6 +364,7 @@
             <div class="dropdown-selected">All Priorities <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
             <div class="dropdown-items">
               <div data-value="ALL">All Priorities</div>
+              <div data-value="Critical">Critical Priority</div>
               <div data-value="Urgent">Urgent Only</div>
               <div data-value="High">High Priority</div>
               <div data-value="Medium">Medium</div>
@@ -486,7 +487,7 @@
         if (userName) document.getElementById('userGreeting').textContent = "Hi, " + userName.split(' ')[0];
         showDashboardUI();
         loadDashboardData(false);
-        startAutoRefresh(); // <--- ADD THIS LINE
+        startAutoRefresh();
       } else {
         localStorage.removeItem('mm_ticket_session');
         showAuthUI();
@@ -697,7 +698,7 @@
       });
     }
 
-    function triggerSync(forceZoho) { loadDashboardData(forceZoho); }
+    function triggerSync(forceZoho) { loadDashboardData(forceZoho, false); }
 
     function showSkeletons() {
       const tbody = document.getElementById('ticketTableBody');
@@ -716,8 +717,6 @@
           </tr>`;
       }
     }
-
-    function triggerSync(forceZoho) { loadDashboardData(forceZoho, false); }
 
     function loadDashboardData(forceRefresh, isSilent = false) {
       const btnId = forceRefresh ? 'zohoBtn' : 'refreshBtn';
@@ -866,6 +865,7 @@
       // --- DYNAMIC DROPDOWN CAPTURE SETS ---
       const validOwners = new Set();
       const validPriorities = new Set();
+      const validAnomalies = new Set();
 
       // STEP 1: Apply Base Filters (Search Query, Owner, Priority, Anomaly)
       let baseFiltered = rawTicketsData.filter(t => {
@@ -894,15 +894,15 @@
           safeDept.includes(query);
 
         let mAnomaly = true;
+        const isDismissed = acknowledgedTickets.includes(String(t.id));
+        const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
+        const isActivelyFlagged = isAnomalyRaw && !isDismissed;
+
         if (anomalyFilter !== 'ALL') {
-          const isDismissed = acknowledgedTickets.includes(String(t.id));
-          const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
-          const isActivelyFlagged = isAnomalyRaw && !isDismissed;
-          
           if (anomalyFilter === 'Healthy') {
              mAnomaly = !isActivelyFlagged;
           } else if (anomalyFilter === 'Awaiting Fix') {
-             mAnomaly = isDismissed; // Only show acknowledged tickets
+             mAnomaly = isDismissed; 
           } else {
              mAnomaly = (safeAnomaly === anomalyFilter.toLowerCase()) && !isDismissed;
           }
@@ -911,24 +911,35 @@
         const mOwner = owner === 'ALL' || t.owner === owner;
         
         let mPri = true;
-        if (priority === 'Urgent') mPri = safePri === 'urgent';
+        if (priority === 'Critical') mPri = safePri === 'critical';
+        else if (priority === 'Urgent') mPri = safePri === 'urgent';
         else if (priority === 'High') mPri = safePri === 'high';
         else if (priority === 'Medium') mPri = safePri === 'medium';
         else if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
 
         // --- DYNAMIC DROPDOWN LOGIC ---
-        // If the ticket matches the current search term and anomaly filters:
-        if (mQuery && mAnomaly) {
-            // If it ALSO matches the active owner filter, we know this priority exists for them
-            if (mOwner) {
-                if (safePri === 'urgent') validPriorities.add('Urgent');
+        if (mQuery) {
+            // If it matches Anomaly & Priority, its Owner is valid
+            if (mAnomaly && mPri) validOwners.add(t.owner);
+            
+            // If it matches Owner & Anomaly, its Priority is valid
+            if (mOwner && mAnomaly) {
+                if (safePri === 'critical') validPriorities.add('Critical');
+                else if (safePri === 'urgent') validPriorities.add('Urgent');
                 else if (safePri === 'high') validPriorities.add('High');
                 else if (safePri === 'medium') validPriorities.add('Medium');
                 else if (safePri === 'low' || safePri === 'normal') validPriorities.add('Low');
             }
-            // If it ALSO matches the active priority filter, we know this owner has tickets here
-            if (mPri) {
-                validOwners.add(t.owner);
+
+            // If it matches Owner & Priority, its Anomaly status is valid
+            if (mOwner && mPri) {
+                if (!isActivelyFlagged) validAnomalies.add('Healthy');
+                if (isDismissed) validAnomalies.add('Awaiting Fix');
+                if (isActivelyFlagged) {
+                    if (safeAnomaly === 'sla breached') validAnomalies.add('SLA Breached');
+                    else if (safeAnomaly === 'customer waiting') validAnomalies.add('Customer Waiting');
+                    else if (safeAnomaly === 'stale ticket') validAnomalies.add('Stale Ticket');
+                }
             }
         }
 
@@ -945,6 +956,12 @@
       document.querySelectorAll('#dd-priority .dropdown-items div').forEach(div => {
           const val = div.getAttribute('data-value');
           if (val === 'ALL' || validPriorities.has(val)) div.style.display = 'block';
+          else div.style.display = 'none';
+      });
+
+      document.querySelectorAll('#dd-anomaly .dropdown-items div').forEach(div => {
+          const val = div.getAttribute('data-value');
+          if (val === 'ALL' || validAnomalies.has(val)) div.style.display = 'block';
           else div.style.display = 'none';
       });
 
@@ -979,7 +996,7 @@
         if (sortVal === 'date-new') return new Date(b.createdDate || 0) - new Date(a.createdDate || 0);
         if (sortVal === 'date-old') return new Date(a.createdDate || 0) - new Date(b.createdDate || 0);
         if (sortVal === 'priority') {
-          const p = {'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
+          const p = {'critical':5,'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
           return (p[(b.priority||'').toLowerCase()]||0) - (p[(a.priority||'').toLowerCase()]||0);
         }
         return 0;
@@ -1008,8 +1025,8 @@
 
         let pColor = "var(--accent-primary)";
         const pLower = (t.priority || "").toLowerCase();
+        if (pLower === 'critical' || pLower === 'urgent') pColor = "var(--danger-color)";
         if (pLower === 'high') pColor = "var(--warning-color)";
-        if (pLower === 'urgent') pColor = "var(--danger-color)";
 
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
         const isDismissed = acknowledgedTickets.includes(String(t.id));
