@@ -175,7 +175,8 @@
     .notif-body { max-height: 350px; overflow-y: auto; scrollbar-width: thin; overflow-x: hidden; }
     .notif-item { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.8rem; transition: all 0.3s ease; }
     .notif-item:hover { background: var(--glass-highlight); }
-    .notif-item strong { color: var(--accent-primary); display: block; margin-bottom: 2px; font-size: 0.85rem; }
+    .notif-item strong { color: var(--accent-primary); display: inline-block; margin-bottom: 2px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; }
+    .notif-item strong:hover { color: var(--accent-hover); text-decoration: underline; }
     .notif-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
     #toastContainer { 
@@ -570,7 +571,7 @@
         body.innerHTML = notifications.map(n => `
           <div class="notif-item" id="${n.id}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-              <strong>#${n.ticket} - ${n.title}</strong>
+              <strong onclick="filterFromNotification('${n.ticket}')" title="Filter dashboard for this ticket">#${n.ticket} - ${n.title}</strong>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 0.65rem; color: var(--text-muted);">${n.time}</span>
                 <svg class="toast-close" onclick="dismissNotification(event, '${n.id}')" style="width:18px;height:18px; color:var(--text-muted); padding:2px;" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line></svg>
@@ -583,6 +584,36 @@
         badge.classList.remove('active');
         body.innerHTML = '<div class="notif-empty">No recent alerts.</div>';
       }
+    }
+
+    function filterFromNotification(ticketNum) {
+      // 1. Close the notification dropdown
+      closeNotifDropdown();
+
+      // 2. Reset all Custom Dropdowns to "ALL" so the ticket isn't hidden
+      const defaultSelections = {
+        'dd-anomaly': 'All Health Statuses',
+        'dd-owner': 'All Executives',
+        'dd-priority': 'All Priorities'
+      };
+      for (const [id, text] of Object.entries(defaultSelections)) {
+        const dd = document.getElementById(id);
+        dd.setAttribute('data-value', 'ALL');
+        dd.querySelector('.dropdown-selected').innerHTML = `${text} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+      }
+
+      // 3. Reset the KPI block filter to "ALL"
+      currentKpiFilter = "ALL";
+      document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
+      document.getElementById('kpi-all').classList.add('active');
+
+      // 4. Inject the ticket number into the search bar and run the filter
+      const searchInput = document.getElementById('searchInput');
+      searchInput.value = ticketNum;
+      applyFilters();
+      
+      // 5. Briefly focus the search bar to show the user what just happened
+      searchInput.focus();
     }
 
     function dismissNotification(event, id) {
@@ -1259,8 +1290,12 @@
         if (targetMatch) {
             const targetMs = parseInt(targetMatch[1], 10);
             const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
-            // Strip the metadata tag and inject the live ticking span
-            parsedSummary = parsedSummary.replace(/\d+\s+minutes\[target:\d+\]/, `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.05em;">${minsLeft}</span> minutes.`);
+            
+            // 1. Completely remove the ugly [target:123456] tag from the string
+            parsedSummary = parsedSummary.replace(/\[target:\d+\]/, "");
+            
+            // 2. Wrap the number in our bold, red, live-ticking span
+            parsedSummary = parsedSummary.replace(/\d+\s+minutes/i, `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.1em;">${minsLeft}</span> minutes`);
         }
 
         // Trigger Proactive Alerts for New Breaches
