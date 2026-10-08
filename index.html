@@ -245,12 +245,12 @@
     .link-cell-wrapper:hover .link-cell-copy { opacity: 1; }
     .link-cell-copy:hover { color: var(--accent-hover); }
 
-    /* RIGHT-ALIGNED TOOLTIP */
-    .pop-align-right[data-tooltip]::before { left: auto !important; right: 0 !important; transform: translateX(0) translateY(5px) !important; }
-    .pop-align-right[data-tooltip]::after { left: auto !important; right: 12px !important; transform: translateX(0) translateY(5px) !important; }
-    .pop-align-right.pop-bottom[data-tooltip]::before { transform: translateX(0) translateY(-5px) !important; }
-    .pop-align-right.pop-bottom[data-tooltip]::after { transform: translateX(0) translateY(-5px) !important; }
-    .pop-align-right[data-tooltip]:hover::before, .pop-align-right[data-tooltip]:hover::after { transform: translateX(0) translateY(0) !important; }
+    /* LEFT-ALIGNED TOOLTIP */
+    .pop-align-left[data-tooltip]::before { left: 0 !important; transform: translateX(0) translateY(5px) !important; }
+    .pop-align-left[data-tooltip]::after { left: 12px !important; transform: translateX(0) translateY(5px) !important; }
+    .pop-align-left.pop-bottom[data-tooltip]::before { transform: translateX(0) translateY(-5px) !important; }
+    .pop-align-left.pop-bottom[data-tooltip]::after { transform: translateX(0) translateY(-5px) !important; }
+    .pop-align-left[data-tooltip]:hover::before, .pop-align-left[data-tooltip]:hover::after { transform: translateX(0) translateY(0) !important; }
 
     /* PREMIUM SKELETON SHIMMER */
     .skeleton-box { height: 16px; border-radius: 6px; margin-bottom: 8px; background: var(--glass-highlight); position: relative; overflow: hidden; }
@@ -1215,6 +1215,12 @@
         // Exact Date string for the hover Tooltip
         const exactDateStr = isNaN(dObj) ? "Unknown" : dObj.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
         
+        // Only render the tooltip and dotted line if it is a relative time
+        const isRelativeTime = dStr.includes("ago") || dStr.includes("Just now") || dStr.includes("Yesterday");
+        const displayDateHtml = isRelativeTime 
+            ? `<small class="pop-bottom pop-align-left" data-tooltip="${exactDateStr}" style="color: var(--text-muted); cursor: help; border-bottom: 1px dotted rgba(148, 163, 184, 0.5); padding-bottom: 1px;">${dStr}</small>`
+            : `<small style="color: var(--text-muted);">${dStr}</small>`;
+
         let agingHtml = '';
         if (!isNaN(dMod)) {
            const daysIdle = Math.floor((Date.now() - dMod.getTime()) / (1000*60*60*24));
@@ -1269,7 +1275,7 @@
         tr.innerHTML = `
           <td>
             <strong class="copyable" onclick="copyToCB('${t.ticketNumber}')" data-tooltip="Copy ID" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}${copySvg}</strong><br>
-            <small class="pop-bottom" data-tooltip="${exactDateStr}" style="color: var(--text-muted); cursor: help; border-bottom: 1px dotted rgba(148, 163, 184, 0.5); padding-bottom: 1px;">${dStr}</small><br>${agingHtml}
+            ${displayDateHtml}<br>${agingHtml}
           </td>
           <td>
             <strong class="copyable" onclick="copyToCB('${t.clientName}')" data-tooltip="Copy Client" style="color: var(--text-main);">${t.clientName}${copySvg}</strong><br>${deptPill}
