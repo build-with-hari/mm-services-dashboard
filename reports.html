@@ -265,8 +265,8 @@
           delayedHtml = delayed.map(t => {
               const delayMs = now - new Date(t.modifiedDate);
               const hrs = Math.floor(delayMs / 3600000);
-              const days = Math.floor(hrs / 24);
-              const timeStr = days > 0 ? `${days}d ${hrs%24}h` : `${hrs}h`;
+              const mins = Math.floor((delayMs % 3600000) / 60000);
+              const timeStr = `${hrs}h ${mins}m`;
               const modStr = new Date(t.modifiedDate).toLocaleString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'});
               const pct = ((delayMs / maxDelayMs) * 100).toFixed(1);
 
