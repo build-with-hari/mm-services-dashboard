@@ -265,15 +265,21 @@
           delayedHtml = delayed.map(t => {
               const delayMs = now - new Date(t.modifiedDate);
               const hrs = Math.floor(delayMs / 3600000);
-              const mins = Math.floor((delayMs % 3600000) / 60000);
-              const timeStr = `${hrs}h ${mins}m`;
+              
+              // 1. Calculate format as Days and Hours (xxd xxh)
+              const days = Math.floor(hrs / 24);
+              const remainingHrs = hrs % 24;
+              const timeStr = days > 0 ? `${days}d ${remainingHrs}h` : `${hrs}h`;
+              
+              // 2. Format the Last Modified string
               const modStr = new Date(t.modifiedDate).toLocaleString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'});
               const pct = ((delayMs / maxDelayMs) * 100).toFixed(1);
 
               return `
               <tr>
                 <td width="138" style="padding:10px 8px 10px 0;color:#24394b;font-size:11px;font-weight:700">
-                  <a href="${t.url}" style="color:#0ea5e9;text-decoration:none;">#${t.ticketNumber}</a>
+                  <!-- 3. Removed hyperlink, kept blue styling -->
+                  <span style="color:#0ea5e9;">#${t.ticketNumber}</span>
                 </td>
                 <td style="padding:10px 8px">
                   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
@@ -282,6 +288,7 @@
                       <td width="${100 - pct}%" height="18" bgcolor="#e5ebf1" style="height:18px;line-height:18px;font-size:1px;background-color:#e5ebf1">&nbsp;</td>
                     </tr>
                   </table>
+                  <!-- 4. Restored the Last mod line -->
                   <div style="font-size:9px; color:#64748b; margin-top:3px;">Last mod: ${modStr}</div>
                 </td>
                 <td width="60" align="right" style="padding:10px 0;color:#172d40;font-size:11px;font-weight:700;white-space:nowrap">${timeStr}</td>
