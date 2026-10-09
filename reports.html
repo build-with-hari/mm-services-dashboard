@@ -66,13 +66,19 @@
     /* REPORT CANVAS */
     .report-canvas { background: #edf1f5; color: #1e293b; border-radius: 16px; padding: 2rem; margin: 0 auto; max-width: 850px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); overflow: hidden; }
 
-    /* CUSTOM EMAIL MODAL */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10000; display: none; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
-    .modal-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 2rem; border-radius: 16px; width: 100%; max-width: 450px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(30px); }
-    .modal-card h3 { margin: 0 0 0.5rem; color: var(--text-main); font-size: 1.25rem; }
-    .modal-input { width: 100%; padding: 0.85rem 1rem; margin-bottom: 1.5rem; background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 8px; outline: none; transition: border-color 0.3s; font-size: 0.9rem; }
-    .modal-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 0.8rem; }
+    /* UPGRADED EMAIL MODAL */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10000; display: none; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
+    .modal-card { background: var(--header-bg); border: 1px solid var(--glass-border); padding: 2.5rem; border-radius: 24px; width: 100%; max-width: 440px; box-shadow: 0 30px 60px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1); backdrop-filter: blur(40px); }
+    .modal-card h3 { margin: 0 0 0.5rem; color: var(--text-main); font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .modal-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.4; }
+    
+    .input-group { position: relative; margin-bottom: 2rem; }
+    .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px; pointer-events: none; }
+    .modal-input { width: 100%; padding: 0.9rem 1rem 0.9rem 2.6rem; background: var(--bg-color); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 12px; outline: none; transition: all 0.3s; font-size: 0.95rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+    .modal-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15), inset 0 2px 4px rgba(0,0,0,0.05); background: var(--glass-bg); }
+    
+    .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; }
+    .modal-actions button { height: 44px; padding: 0 1.5rem; border-radius: 12px; font-size: 0.9rem; }
 
     /* TOAST */
     #toastContainer { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
@@ -85,15 +91,26 @@
 <body>
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
-  <!-- EMAIL MODAL -->
+  <!-- UPGRADED EMAIL MODAL -->
   <div class="modal-overlay" id="emailModal">
     <div class="modal-card">
-      <h3>Send Weekly Report</h3>
-      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Enter email addresses (comma separated):</p>
-      <input type="text" id="emailInput" class="modal-input" placeholder="e.g. name@mindmatrix.net">
+      <h3>
+        <svg class="svg-icon" style="width: 22px; height: 22px; color: var(--accent-primary);" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        Dispatch Report
+      </h3>
+      <p>Enter the recipient email addresses separated by commas to send the weekly snapshot.</p>
+      
+      <div class="input-group">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <input type="text" id="emailInput" class="modal-input" placeholder="e.g. name@mindmatrix.net">
+      </div>
+
       <div class="modal-actions">
         <button class="btn-outline" onclick="document.getElementById('emailModal').style.display='none'">Cancel</button>
-        <button class="btn-primary" onclick="submitEmailReport()" id="modalSendBtn">Send Email</button>
+        <button class="btn-primary" onclick="submitEmailReport()" id="modalSendBtn">
+           Send Now
+           <svg class="svg-icon" style="width: 16px; margin-left: 4px;" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
       </div>
     </div>
   </div>
