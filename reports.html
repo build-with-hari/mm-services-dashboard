@@ -18,6 +18,7 @@
       --accent-primary: #38bdf8;
       --accent-hover: #0284c7;
       --danger-color: #f87171;
+      --safe-color: #34d399;
       --card-bg: rgba(17, 24, 39, 0.75);
       --header-bg: rgba(15, 20, 32, 0.85);
     }
@@ -31,6 +32,7 @@
       --accent-primary: #0ea5e9;
       --accent-hover: #0284c7;
       --danger-color: #dc2626;
+      --safe-color: #059669;
       --card-bg: rgba(255, 255, 255, 0.85);
       --header-bg: rgba(241, 245, 249, 0.85);
     }
@@ -46,7 +48,7 @@
     .app-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; animation: fadeIn 0.6s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); }
+    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); }
 
     .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
     .brand-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, var(--text-main), var(--accent-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -58,6 +60,10 @@
     .btn-primary:hover { box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4); transform: translateY(-2px); }
     .btn-outline { background: var(--glass-highlight); color: var(--text-main); border: 1px solid var(--glass-border); }
     .btn-outline:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-primary); transform: translateY(-2px); }
+    .btn-icon { padding: 0; width: 40px; justify-content: center; }
+    
+    .svg-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none !important; stroke-linecap: round; stroke-linejoin: round; }
+    .svg-icon * { fill: none !important; }
 
     /* REPORT CANVAS */
     .report-canvas { background: #edf1f5; color: #1e293b; border-radius: 16px; padding: 2rem; margin: 0 auto; max-width: 850px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); overflow: hidden; }
