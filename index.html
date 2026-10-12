@@ -511,13 +511,8 @@
     let currentFilteredData = []; 
     let currentKpiFilter = "ALL";
     
+    // START WITH EMPTY LIST - WE WILL PULL THIS FROM BACKEND NOW
     let acknowledgedTickets = [];
-    try {
-      acknowledgedTickets = JSON.parse(localStorage.getItem('mm_acknowledged') || '[]');
-      if (!Array.isArray(acknowledgedTickets)) acknowledgedTickets = [];
-    } catch (e) {
-      acknowledgedTickets = [];
-    }
 
     // --- NOTIFICATION & TIME ENGINE ---
     let notifications = JSON.parse(localStorage.getItem('mm_notifications') || '[]');
@@ -1002,6 +997,10 @@
       .then(res => {
         if (res.success) {
           rawTicketsData = (res.data.tickets || []).filter(t => t && t.id);
+          
+          // LOAD ACKNOWLEDGED LIST FROM BACKEND!
+          acknowledgedTickets = res.ackList || [];
+          
           document.getElementById('kpiLastSync').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ` + (res.data.lastRefreshed || "--");
           updateKPIs();
           applyFilters();
@@ -1026,14 +1025,33 @@
       });
     }
 
-    function toggleAcknowledge(ticketId) {
-      const idStr = String(ticketId);
+    // PERSISTENT ACKNOWLEDGEMENT FUNCTION
+    function toggleAcknowledge(ticketId, anomalyType) {
+      const sessionToken = localStorage.getItem('mm_ticket_session');
+      const idStr = String(ticketId) + "::" + anomalyType;
+      
+      // Update UI Instantly
       const idx = acknowledgedTickets.indexOf(idStr);
       if (idx > -1) acknowledgedTickets.splice(idx, 1);
       else acknowledgedTickets.push(idStr);
-      localStorage.setItem('mm_acknowledged', JSON.stringify(acknowledgedTickets));
       updateKPIs();
       applyFilters();
+
+      // Dispatch to Backend to save globally
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "toggleAcknowledge", sessionToken: sessionToken, ticketId: ticketId, anomalyType: anomalyType })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+           acknowledgedTickets = res.ackList || [];
+        } else {
+           showToast("Failed to save acknowledgement remotely.");
+        }
+      })
+      .catch(err => showToast("Network error saving to database."));
     }
 
     // Number Rolling Engine
@@ -1060,14 +1078,13 @@
     }
 
     function updateKPIs(ticketList) {
-      // Use the dynamically filtered list (or fallback to raw data if none provided)
       const data = ticketList || rawTicketsData;
-      
       const activeTickets = data.filter(t => (t.status || "").toLowerCase() !== 'closed');
       const total = activeTickets.length;
-      const anomalies = activeTickets.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id))).length;
       
-      // Trigger the number rolling animations
+      // Strict rule mapping - checks array for EXACT Ticket ID AND Anomaly Type Match
+      const anomalies = activeTickets.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType)).length;
+      
       animateCounter('kpiTotal', total);
       animateCounter('kpiAnomalies', anomalies);
       animateCounter('kpiHealthy', total - anomalies);
@@ -1107,7 +1124,6 @@
     function applyFilters() {
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
       
-      // Toggle Clear (X) button visibility
       const clearBtn = document.querySelector('.search-clear');
       if (query.length > 0) clearBtn.classList.add('visible');
       else clearBtn.classList.remove('visible');
@@ -1119,12 +1135,10 @@
       const tbody = document.getElementById('ticketTableBody');
       tbody.innerHTML = '';
 
-      // --- DYNAMIC DROPDOWN CAPTURE SETS ---
       const validOwners = new Set();
       const validPriorities = new Set();
       const validAnomalies = new Set();
 
-      // STEP 1: Apply Base Filters (Search Query, Owner, Priority, Anomaly)
       let baseFiltered = rawTicketsData.filter(t => {
         const safeStatus = (t.status || "").toLowerCase();
         if (safeStatus === 'closed') return false; 
@@ -1151,7 +1165,9 @@
           safeDept.includes(query);
 
         let mAnomaly = true;
-        const isDismissed = acknowledgedTickets.includes(String(t.id));
+        
+        // Use strict mapping logic
+        const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
         const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
         const isActivelyFlagged = isAnomalyRaw && !isDismissed;
 
@@ -1174,12 +1190,8 @@
         else if (priority === 'Medium') mPri = safePri === 'medium';
         else if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
 
-        // --- DYNAMIC DROPDOWN LOGIC ---
         if (mQuery) {
-            // If it matches Anomaly & Priority, its Owner is valid
             if (mAnomaly && mPri) validOwners.add(t.owner);
-            
-            // If it matches Owner & Anomaly, its Priority is valid
             if (mOwner && mAnomaly) {
                 if (safePri === 'critical') validPriorities.add('Critical');
                 else if (safePri === 'urgent') validPriorities.add('Urgent');
@@ -1187,8 +1199,6 @@
                 else if (safePri === 'medium') validPriorities.add('Medium');
                 else if (safePri === 'low' || safePri === 'normal') validPriorities.add('Low');
             }
-
-            // If it matches Owner & Priority, its Anomaly status is valid
             if (mOwner && mPri) {
                 if (!isActivelyFlagged) validAnomalies.add('Healthy');
                 if (isDismissed) validAnomalies.add('Awaiting Fix');
@@ -1199,11 +1209,9 @@
                 }
             }
         }
-
         return mQuery && mOwner && mPri && mAnomaly;
       });
 
-      // --- UPDATE DROPDOWN HTML DOM VISIBILITY ---
       document.querySelectorAll('#dd-owner .dropdown-items div').forEach(div => {
           const val = div.getAttribute('data-value');
           if (val === 'ALL' || validOwners.has(val)) div.style.display = 'block';
@@ -1222,7 +1230,6 @@
           else div.style.display = 'none';
       });
 
-      // --- TOGGLE FLOATING CLEAR BUTTON ---
       const fab = document.getElementById('floatingClearBtn');
       if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new') {
           fab.classList.add('visible');
@@ -1230,14 +1237,12 @@
           fab.classList.remove('visible');
       }
 
-      // STEP 2: Dynamically Update KPI Tiles based on the active search/dropdowns!
       updateKPIs(baseFiltered);
 
-      // STEP 3: Apply the selected KPI block filter (e.g. only show "Pending")
       let filtered = baseFiltered.filter(t => {
         const safeStatus = (t.status || "").toLowerCase();
         const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
-        const isDismissed = acknowledgedTickets.includes(String(t.id));
+        const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
         const isActivelyFlagged = isAnomalyRaw && !isDismissed;
 
         let mKpi = true;
@@ -1248,11 +1253,11 @@
         return mKpi;
       });
 
-      // STEP 4: Sort Data
+      // SORT ENGINE 
       filtered.sort((a, b) => {
         if (sortVal === 'date-new') return new Date(b.createdDate || 0) - new Date(a.createdDate || 0);
         if (sortVal === 'date-old') return new Date(a.createdDate || 0) - new Date(b.createdDate || 0);
-        if (sortVal === 'idle') return new Date(a.modifiedDate || 0) - new Date(b.modifiedDate || 0);
+        if (sortVal === 'idle') return new Date(a.modifiedDate || 0) - new Date(b.modifiedDate || 0); // Drives longest idle to top
         if (sortVal === 'priority') {
           const p = {'critical':5,'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
           return (p[(b.priority||'').toLowerCase()]||0) - (p[(a.priority||'').toLowerCase()]||0);
@@ -1271,13 +1276,9 @@
         const dObj = new Date(t.createdDate);
         const dMod = new Date(t.modifiedDate);
         
-        // Use human relative timestamps (e.g. "2 hours ago")
         const dStr = getRelativeTimeET(t.createdDate);
-        
-        // Exact Date string for the hover Tooltip
         const exactDateStr = isNaN(dObj) ? "Unknown" : dObj.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
         
-        // Only render the tooltip and dotted line if it is a relative time
         const isRelativeTime = dStr.includes("ago") || dStr.includes("Just now") || dStr.includes("Yesterday");
         const displayDateHtml = isRelativeTime 
             ? `<small class="pop-bottom pop-align-left" data-tooltip="${exactDateStr}" style="color: var(--text-muted); cursor: help; border-bottom: 1px dotted rgba(148, 163, 184, 0.5); padding-bottom: 1px;">${dStr}</small>`
@@ -1297,24 +1298,18 @@
         if (pLower === 'high') pColor = "var(--warning-color)";
 
         const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
-        const isDismissed = acknowledgedTickets.includes(String(t.id));
+        const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
         const isOverloaded = (t.anomalyType === "API Overloaded" || (t.aiSummary || "").includes("free-tier"));
 
-        // Inject Dynamic Live Countdown (Using Absolute Backend Target Time)
         let parsedSummary = t.aiSummary || "";
         const targetMatch = parsedSummary.match(/\[target:(\d+)\]/);
         if (targetMatch) {
             const targetMs = parseInt(targetMatch[1], 10);
             const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
-            
-            // 1. Completely remove the ugly [target:123456] tag from the string
             parsedSummary = parsedSummary.replace(/\[target:\d+\]/, "");
-            
-            // 2. Wrap the number in our bold, red, live-ticking span
             parsedSummary = parsedSummary.replace(/\d+\s+minutes/i, `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.1em;">${minsLeft}</span> minutes`);
         }
 
-        // Trigger Proactive Alerts for New Breaches
         if (isAnomaly && !isDismissed && !isOverloaded) {
             triggerAlert(t.ticketNumber, t.anomalyType || 'SLA Warning', parsedSummary || 'Action required on ticket.');
         }
@@ -1337,13 +1332,12 @@
         
         if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
             const btnText = isDismissed ? 'Restore' : 'Acknowledge';
-            const actionBtn = isAnomaly && !isOverloaded ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}')">${btnText}</button>` : '';
+            const actionBtn = isAnomaly && !isOverloaded ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}', '${t.anomalyType}')">${btnText}</button>` : '';
             aiActionHtml = `<div class="ai-action-box"><span><svg class="inline-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path><line x1="9" y1="21" x2="15" y2="21"></line></svg> <strong>Action:</strong> ${t.suggestedAction}</span> ${actionBtn}</div>`;
         }
 
         const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 
-        // BUILD DEPARTMENT PILL (Softer font, Title Case)
         let deptPill = `<span style="display:inline-block; margin-top:6px; padding:3px 8px; border-radius:6px; font-size:0.7rem; font-weight:600; background:var(--glass-highlight); border:1px solid var(--glass-border); color:var(--text-muted); letter-spacing:0.3px;">${t.department || 'Unknown'}</span>`;
 
         const tr = document.createElement('tr');
@@ -1457,11 +1451,9 @@
         </div>
       `;
       
-      // Insert new toast BEFORE the Clear All button
       tc.insertBefore(t, clearBtn);
       checkToasts();
 
-      // Normal messages auto-fade. Anomaly alerts wait until the user clicks 'x' or 'Clear All'.
       if (!isAlert) {
         setTimeout(() => { 
           t.style.opacity = '0'; 
