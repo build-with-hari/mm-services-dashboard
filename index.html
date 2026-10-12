@@ -255,17 +255,18 @@
     .pop-align-left.pop-bottom[data-tooltip]::after { transform: translateX(0) translateY(-5px) !important; }
     .pop-align-left[data-tooltip]:hover::before, .pop-align-left[data-tooltip]:hover::after { transform: translateX(0) translateY(0) !important; }
 
+    /* RIGHT-ALIGNED TOOLTIP (Fixes edge cutoff) */
+    .pop-align-right[data-tooltip]::before { left: auto !important; right: 0 !important; transform: translateX(0) translateY(5px) !important; }
+    .pop-align-right[data-tooltip]::after { left: auto !important; right: 12px !important; transform: translateX(0) translateY(5px) !important; }
+    .pop-align-right.pop-bottom[data-tooltip]::before { transform: translateX(0) translateY(-5px) !important; }
+    .pop-align-right.pop-bottom[data-tooltip]::after { transform: translateX(0) translateY(-5px) !important; }
+    .pop-align-right[data-tooltip]:hover::before, .pop-align-right[data-tooltip]:hover::after { transform: translateX(0) translateY(0) !important; }
+
     /* PREMIUM SKELETON SHIMMER */
     .skeleton-box { height: 16px; border-radius: 6px; margin-bottom: 8px; background: var(--glass-highlight); position: relative; overflow: hidden; }
     .skeleton-box::after { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, var(--glass-border), transparent); transform: translateX(-100%); animation: shimmer 1.5s infinite; }
     @keyframes shimmer { 100% { transform: translateX(100%); } }
 
-    /* TOAST */
-    #toastContainer { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
-    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 10px; }
-    @keyframes toastIn { to { opacity: 1; transform: translateX(0) scale(1); } }
-    .spin { animation: spin 1.2s infinite cubic-bezier(0.5, 0.1, 0.4, 0.9); }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -442,6 +443,7 @@
             <div class="dropdown-items">
               <div data-value="date-new">Sort: Newest First</div>
               <div data-value="date-old">Sort: Oldest First</div>
+              <div data-value="idle">Sort: Longest Idle</div>
               <div data-value="priority">Sort: Highest Priority</div>
             </div>
           </div>
@@ -787,14 +789,18 @@
 
     function clearAllFilters() {
        const defaultSelections = {
-          'dd-anomaly': 'All Health Statuses',
-          'dd-owner': 'All Executives',
-          'dd-priority': 'All Priorities'
+         'dd-anomaly': 'All Health Statuses',
+         'dd-owner': 'All Executives',
+         'dd-priority': 'All Priorities',
+         'dd-sort': 'Sort: Newest First' // Also reset sorting to default when clearing
        };
        for (const [id, text] of Object.entries(defaultSelections)) {
-          const dd = document.getElementById(id);
-          dd.setAttribute('data-value', 'ALL');
-          dd.querySelector('.dropdown-selected').innerHTML = `${text} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+         const dd = document.getElementById(id);
+         if (dd) {
+             const val = id === 'dd-sort' ? 'date-new' : 'ALL';
+             dd.setAttribute('data-value', val);
+             dd.querySelector('.dropdown-selected').innerHTML = `${text} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+         }
        }
        applyFilters();
     }
@@ -1218,7 +1224,7 @@
 
       // --- TOGGLE FLOATING CLEAR BUTTON ---
       const fab = document.getElementById('floatingClearBtn');
-      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL') {
+      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new') {
           fab.classList.add('visible');
       } else {
           fab.classList.remove('visible');
@@ -1246,6 +1252,7 @@
       filtered.sort((a, b) => {
         if (sortVal === 'date-new') return new Date(b.createdDate || 0) - new Date(a.createdDate || 0);
         if (sortVal === 'date-old') return new Date(a.createdDate || 0) - new Date(b.createdDate || 0);
+        if (sortVal === 'idle') return new Date(a.modifiedDate || 0) - new Date(b.modifiedDate || 0);
         if (sortVal === 'priority') {
           const p = {'critical':5,'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
           return (p[(b.priority||'').toLowerCase()]||0) - (p[(a.priority||'').toLowerCase()]||0);
