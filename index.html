@@ -193,11 +193,11 @@
       overflow: hidden; 
       padding: 10px; 
     }
-    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; width: 350px; box-sizing: border-box; transition: opacity 0.3s ease, transform 0.3s ease; }
+    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; width: 350px; box-sizing: border-box; transition: opacity 0.3s ease, transform 0.3s ease; }
     .toast-close { cursor: pointer; opacity: 0.6; padding: 4px; transition: 0.2s; border-radius: 4px; display: flex; }
     .toast-close:hover { opacity: 1; background: var(--glass-highlight); }
     
-    .toast-clear-all { background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--danger-color); padding: 8px 16px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; cursor: pointer; backdrop-filter: blur(15px); pointer-events: none; transition: all 0.3s ease; opacity: 0; transform: translateY(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 4px; display: flex; align-items: center; gap: 6px; user-select: none; }
+    .toast-clear-all { background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--danger-color); padding: 8px 16px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; cursor: pointer; backdrop-filter: blur(15px); pointer-events: none; transition: all 0.3s ease; opacity: 0; transform: translateY(10px); margin-top: 4px; display: flex; align-items: center; gap: 6px; user-select: none; }
     .toast-clear-all.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
     .toast-clear-all:hover { background: rgba(248, 113, 113, 0.25); box-shadow: 0 12px 30px rgba(248, 113, 113, 0.2); }
     .toast-clear-all:active { transform: scale(0.95); }
@@ -511,7 +511,7 @@
     let currentFilteredData = []; 
     let currentKpiFilter = "ALL";
     
-    // START WITH EMPTY LIST - WE WILL PULL THIS FROM BACKEND NOW
+    // Securely loaded strictly from Google Sheet backend
     let acknowledgedTickets = [];
 
     // --- NOTIFICATION & TIME ENGINE ---
@@ -1466,7 +1466,6 @@
       const clearBtn = document.getElementById('toastClearAllBtn');
       if (tc && clearBtn) {
         const toastCount = tc.querySelectorAll('.toast').length;
-        // Changed to > 1 so it only shows up if there are multiple notifications
         if (toastCount > 1) clearBtn.classList.add('visible'); 
         else clearBtn.classList.remove('visible');
       }
