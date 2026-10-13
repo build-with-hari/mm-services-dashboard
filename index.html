@@ -1175,7 +1175,7 @@
           } else if (anomalyFilter === 'Awaiting Fix') {
              mAnomaly = isDismissed; 
           } else {
-             mAnomaly = (safeAnomaly === anomalyFilter.toLowerCase()) && !isDismissed;
+             mAnomaly = safeAnomaly.includes(anomalyFilter.toLowerCase()) && !isDismissed;
           }
         }
 
@@ -1201,9 +1201,9 @@
                 if (!isActivelyFlagged) validAnomalies.add('Healthy');
                 if (isDismissed) validAnomalies.add('Awaiting Fix');
                 if (isActivelyFlagged) {
-                    if (safeAnomaly === 'sla breached') validAnomalies.add('SLA Breached');
-                    else if (safeAnomaly === 'customer waiting') validAnomalies.add('Customer Waiting');
-                    else if (safeAnomaly === 'stale ticket') validAnomalies.add('Stale Ticket');
+                    if (safeAnomaly.includes('sla breached')) validAnomalies.add('SLA Breached');
+                    if (safeAnomaly.includes('customer waiting')) validAnomalies.add('Customer Waiting');
+                    if (safeAnomaly.includes('stale ticket')) validAnomalies.add('Stale Ticket');
                 }
             }
         }
@@ -1300,13 +1300,16 @@
         const isOverloaded = (t.anomalyType === "API Overloaded" || (t.aiSummary || "").includes("free-tier"));
 
         let parsedSummary = t.aiSummary || "";
-        const targetMatch = parsedSummary.match(/\[target:(\d+)\]/);
-        if (targetMatch) {
-            const targetMs = parseInt(targetMatch[1], 10);
-            const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
-            parsedSummary = parsedSummary.replace(/\[target:\d+\]/, "");
-            parsedSummary = parsedSummary.replace(/\d+\s+minutes/i, `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.1em;">${minsLeft}</span> minutes`);
+        
+        // Handle multiple countdown targets and reformat bullet points if multiple exist
+        if (parsedSummary.includes(" | ")) {
+            parsedSummary = "• " + parsedSummary.split(" | ").join("<br>• ");
         }
+        parsedSummary = parsedSummary.replace(/\[target:(\d+)\]/g, (match, ms) => {
+            const targetMs = parseInt(ms, 10);
+            const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
+            return `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.1em;">${minsLeft}</span> minutes`;
+        });
 
         if (isAnomaly && !isDismissed && !isOverloaded) {
             triggerAlert(t.ticketNumber, t.anomalyType || 'SLA Warning', parsedSummary || 'Action required on ticket.');
@@ -1320,7 +1323,9 @@
         } else if (isAnomaly && isDismissed) {
             badgeHtml = `<span class="badge badge-dismissed">Awaiting Fix</span>`;
         } else if (isAnomaly) {
-            badgeHtml = `<span class="badge badge-anomaly"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ${t.anomalyType || 'Flagged'}</span>`;
+            // Split multiple anomalies into distinct stacked red badges
+            const anomalyArray = (t.anomalyType || 'Flagged').split(' + ');
+            badgeHtml = anomalyArray.map(anom => `<span class="badge badge-anomaly" style="margin-bottom:4px; display:inline-flex;"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ${anom}</span>`).join('<br>');
         } else {
             badgeHtml = `<span class="badge badge-normal"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Healthy</span>`;
         }
