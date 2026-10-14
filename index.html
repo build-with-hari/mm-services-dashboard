@@ -1271,11 +1271,16 @@
       }
 
       filtered.forEach(t => {
-        // --- SAFE ESCAPING TO PREVENT HTML BREAKAGE ---
-        const safeTicketNum = String(t.ticketNumber || "").replace(/'/g, "\\'");
-        const safeClientName = String(t.clientName || "").replace(/'/g, "\\'");
-        const safeUrl = String(t.url || "").replace(/'/g, "\\'");
-        const safeAnomalyType = String(t.anomalyType || "").replace(/'/g, "\\'");
+        // --- BULLETPROOF ESCAPING FOR HTML & JS ---
+        const encodeHTML = (str) => String(str || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const encodeJS = (str) => encodeHTML(str).replace(/'/g, "\\'").replace(/\n/g, " ");
+
+        // We encode variables based on where they live (JS functions vs HTML attributes)
+        const safeTicketNum = encodeJS(t.ticketNumber);
+        const safeClientName = encodeJS(t.clientName);
+        const safeUrlJS = encodeJS(t.url);
+        const safeUrlHTML = encodeHTML(t.url);
+        const safeAnomalyType = encodeJS(t.anomalyType);
         
         // Safely encode subject to prevent rogue HTML tags from breaking the layout
         const div = document.createElement('div');
@@ -1383,16 +1388,16 @@
           </td>
           <td style="text-align: right; vertical-align: middle;">
             <div class="link-cell-wrapper">
-              <span class="link-cell-copy pop-bottom pop-align-right" onclick="copyToCB('${safeUrl}')" data-tooltip="Copy URL">
+              <span class="link-cell-copy pop-bottom pop-align-right" onclick="copyToCB('${safeUrlJS}')" data-tooltip="Copy URL">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               </span>
-              <a href="${t.url}" target="_blank" class="btn btn-outline pop-bottom pop-align-right link-cell-btn" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+              <a href="${safeUrlHTML}" target="_blank" class="btn btn-outline pop-bottom pop-align-right link-cell-btn" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;" data-tooltip="View in Zoho">Open <svg class="svg-icon" style="width:12px; margin-left:4px;" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
             </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
-    } // <--- THIS is the curly brace that was missing!
+    }
 
     function copyToCB(text) {
       navigator.clipboard.writeText(text);
