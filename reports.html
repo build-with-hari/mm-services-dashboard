@@ -274,7 +274,9 @@
 
       const activeTickets = rawTicketsData.filter(t => {
           const s = (t.status || "").toLowerCase();
-          return !['closed', 'resolved', 'closed resolved', 'closed unresolved'].includes(s);
+          const d = (t.department || "").toLowerCase();
+          // Filter out closed statuses AND explicitly require the Services department
+          return !['closed', 'resolved', 'closed resolved', 'closed unresolved'].includes(s) && d === 'services';
       });
 
       activeTickets.forEach(t => {
