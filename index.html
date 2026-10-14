@@ -423,6 +423,7 @@
               <div data-value="Nikunj Singla">Nikunj Singla</div>
               <div data-value="Rahul Kamble">Rahul Kamble</div>
               <div data-value="Shashank Singh">Shashank Singh</div>
+              <div data-value="Others">Others</div>
             </div>
           </div>
 
@@ -1179,7 +1180,8 @@
           }
         }
 
-        const mOwner = owner === 'ALL' || t.owner === owner;
+        const mainAgents = ["Amit Badoni", "Gagandeep Kaur", "Hari Iyer", "Jashandeep Kaur", "Nikunj Singla", "Rahul Kamble", "Shashank Singh"];
+        const mOwner = owner === 'ALL' || (owner === 'Others' ? !mainAgents.includes(t.owner) : t.owner === owner);
         
         let mPri = true;
         if (priority === 'Critical') mPri = safePri === 'critical';
@@ -1189,7 +1191,10 @@
         else if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
 
         if (mQuery) {
-            if (mAnomaly && mPri) validOwners.add(t.owner);
+            if (mAnomaly && mPri) {
+                validOwners.add(t.owner);
+                if (!mainAgents.includes(t.owner)) validOwners.add('Others');
+            }
             if (mOwner && mAnomaly) {
                 if (safePri === 'critical') validPriorities.add('Critical');
                 else if (safePri === 'urgent') validPriorities.add('Urgent');
