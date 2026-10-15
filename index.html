@@ -791,14 +791,19 @@
          'dd-sort': 'Sort: Newest First' // Also reset sorting to default when clearing
        };
        for (const [id, text] of Object.entries(defaultSelections)) {
-         const dd = document.getElementById(id);
-         if (dd) {
-             const val = id === 'dd-sort' ? 'date-new' : 'ALL';
-             dd.setAttribute('data-value', val);
-             dd.querySelector('.dropdown-selected').innerHTML = `${text} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-         }
-       }
-       applyFilters();
+        const dd = document.getElementById(id);
+        if (dd) {
+            const val = id === 'dd-sort' ? 'date-new' : 'ALL';
+            dd.setAttribute('data-value', val);
+            dd.querySelector('.dropdown-selected').innerHTML = `${text} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+        }
+      }
+      
+      // Reset the Alt+A cross-department view back to normal
+      showAllDepts = false;
+      localStorage.setItem('mm_show_all_depts', false);
+      
+      applyFilters();
     }
 
     // STATE VARIABLE FOR ALT+A SHORTCUT
@@ -1260,7 +1265,8 @@
       });
 
       const fab = document.getElementById('floatingClearBtn');
-      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new') {
+      // Show Clear Filters if ANY dropdown is changed OR if Alt+A cross-dept view is active
+      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts) {
           fab.classList.add('visible');
       } else {
           fab.classList.remove('visible');
@@ -1487,9 +1493,10 @@
       }
 
       const t = document.createElement('div');
-      t.className = 'toast'; 
+      // Add a specific class if this is an alert so we can count them separately
+      t.className = isAlert ? 'toast alert-toast' : 'toast'; 
       
-      const icon = isAlert 
+      const icon = isAlert
         ? `<svg class="svg-icon" style="color:var(--danger-color); flex-shrink: 0;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`
         : `<svg class="svg-icon" style="color:var(--accent-primary); flex-shrink: 0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
 
@@ -1517,8 +1524,9 @@
       const tc = document.getElementById('toastContainer');
       const clearBtn = document.getElementById('toastClearAllBtn');
       if (tc && clearBtn) {
-        const toastCount = tc.querySelectorAll('.toast').length;
-        if (toastCount > 1) clearBtn.classList.add('visible'); 
+        // Only show 'Clear All' if there are multiple persistent ALERTS, ignoring temp toasts
+        const alertCount = tc.querySelectorAll('.alert-toast').length;
+        if (alertCount > 1) clearBtn.classList.add('visible'); 
         else clearBtn.classList.remove('visible');
       }
     }
