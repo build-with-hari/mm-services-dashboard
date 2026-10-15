@@ -821,17 +821,20 @@
         showAllDepts = !showAllDepts;
         localStorage.setItem('mm_show_all_depts', showAllDepts);
         
-        // 2. Trigger the Toast immediately so the animation starts smoothly
-        if (showAllDepts) {
-           showToast("Showing ALL department tickets for Core Executives");
-        } else {
-           showToast("Showing Services ONLY tickets");
-        }
-        
-        // 3. Delay the heavy table-building by 50 milliseconds so the toast has room to render
-        setTimeout(() => {
-           applyFilters();
-        }, 50);
+        // 2. Run the heavy table filtering first
+        applyFilters();
+
+        // 3. Force the browser to wait exactly 2 animation frames (after the table paints) 
+        // to inject the toast, guaranteeing the CSS animation plays smoothly.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (showAllDepts) {
+               showToast("Showing ALL department tickets for Core Executives");
+            } else {
+               showToast("Showing Services ONLY tickets");
+            }
+          });
+        });
       }
 
       // ALT+C: METRICS LOGIC (Fully Automated Mon -> Fri)
