@@ -811,16 +811,16 @@
 
     // KEYBOARD SHORTCUTS LOGIC
     document.addEventListener('keydown', function(e) {
-      // ALT+A: Toggle Cross-Department View
-      if (e.altKey && e.key.toLowerCase() === 'a') {
+      // ALT+A: Toggle Cross-Department View (Bulletproof for Mac & Windows)
+      if (e.altKey && (e.key.toLowerCase() === 'a' || e.code === 'KeyA')) {
         e.preventDefault();
         showAllDepts = !showAllDepts;
         localStorage.setItem('mm_show_all_depts', showAllDepts);
         
         if (showAllDepts) {
-           showToast("Viewing ALL departments for Core Executives.");
+           showToast("Showing ALL department tickets for Core Executives");
         } else {
-           showToast("Viewing ONLY Services department tickets.");
+           showToast("Showing Services ONLY tickets");
         }
         applyFilters();
       }
