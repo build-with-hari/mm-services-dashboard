@@ -193,7 +193,7 @@
       overflow: hidden; 
       padding: 10px; 
     }
-    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; opacity: 0; transform: translateX(50px) scale(0.9); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; width: 350px; box-sizing: border-box; transition: opacity 0.3s ease, transform 0.3s ease; }
+    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; opacity: 1; transform: translateX(0) scale(1); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; width: 350px; box-sizing: border-box; transition: opacity 0.3s ease, transform 0.3s ease; }
     .toast-close { cursor: pointer; opacity: 0.6; padding: 4px; transition: 0.2s; border-radius: 4px; display: flex; }
     .toast-close:hover { opacity: 1; background: var(--glass-highlight); }
     
@@ -809,26 +809,17 @@
     // STATE VARIABLE FOR ALT+A SHORTCUT
     let showAllDepts = localStorage.getItem('mm_show_all_depts') === 'true';
 
-    // KEYBOARD SHORTCUTS LOGIC
-    document.addEventListener('keydown', function(e) {
+    // KEYBOARD SHORTCUTS LOGIC (Using ASYNC to control browser rendering)
+    document.addEventListener('keydown', async function(e) {
       // ALT+A: Toggle Cross-Department View (Bulletproof for Mac & Windows)
       if (e.altKey && (e.key.toLowerCase() === 'a' || e.code === 'KeyA')) {
         e.preventDefault();
-        
-        // Prevent the keyboard from "spamming" the shortcut if the key is held down
         if (e.repeat) return; 
 
         showAllDepts = !showAllDepts;
         localStorage.setItem('mm_show_all_depts', showAllDepts);
         
-        // 1. Instantly trigger the Toast BEFORE the table freezes the browser
-        if (showAllDepts) {
-           showToast("Showing ALL department tickets for Core Executives");
-        } else {
-           showToast("Showing Services ONLY tickets");
-        }
-        
-        // 2. Clear the table and show a fast loading spinner so the UI responds instantly
+        // 1. Clear table and inject the spinner
         document.getElementById('ticketTableBody').innerHTML = `
           <tr>
             <td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">
@@ -837,11 +828,18 @@
             </td>
           </tr>`;
 
-        // 3. Give the browser 500ms to smoothly animate the Toast, THEN run the heavy filters
-        // The toast animation takes exactly 400ms. If we interrupt it before 400ms, it remains invisible!
-        setTimeout(() => {
-           applyFilters();
-        }, 500);
+        // 2. Trigger the Toast
+        if (showAllDepts) {
+           showToast("Showing ALL department tickets for Core Executives");
+        } else {
+           showToast("Showing Services ONLY tickets");
+        }
+
+        // 3. FORCE the browser to pause and actually paint the screen before continuing
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // 4. Safely run the heavy table math now that the animations are playing
+        applyFilters();
       }
 
       // ALT+C: METRICS LOGIC (Fully Automated Mon -> Fri)
