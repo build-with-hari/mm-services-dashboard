@@ -814,18 +814,20 @@
       // ALT+A: Toggle Cross-Department View (Bulletproof for Mac & Windows)
       if (e.altKey && (e.key.toLowerCase() === 'a' || e.code === 'KeyA')) {
         e.preventDefault();
+        
+        // Prevent the keyboard from "spamming" the shortcut if the key is held down
         if (e.repeat) return; 
 
         showAllDepts = !showAllDepts;
         localStorage.setItem('mm_show_all_depts', showAllDepts);
         
-        // 1. Trigger the Toast immediately
+        // 1. Instantly trigger the Toast BEFORE the table freezes the browser
         if (showAllDepts) {
            showToast("Showing ALL department tickets for Core Executives");
         } else {
            showToast("Showing Services ONLY tickets");
         }
-
+        
         // 2. Clear the table and show a fast loading spinner so the UI responds instantly
         document.getElementById('ticketTableBody').innerHTML = `
           <tr>
@@ -835,10 +837,11 @@
             </td>
           </tr>`;
 
-        // 3. Give the browser 300ms to smoothly animate the Toast, THEN run the heavy filters
+        // 3. Give the browser 500ms to smoothly animate the Toast, THEN run the heavy filters
+        // The toast animation takes exactly 400ms. If we interrupt it before 400ms, it remains invisible!
         setTimeout(() => {
            applyFilters();
-        }, 300);
+        }, 500);
       }
 
       // ALT+C: METRICS LOGIC (Fully Automated Mon -> Fri)
