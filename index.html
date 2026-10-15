@@ -801,8 +801,26 @@
        applyFilters();
     }
 
-    // ALT+C METRICS LOGIC (Fully Automated Mon -> Fri)
+    // STATE VARIABLE FOR ALT+A SHORTCUT
+    let showAllDepts = localStorage.getItem('mm_show_all_depts') === 'true';
+
+    // KEYBOARD SHORTCUTS LOGIC
     document.addEventListener('keydown', function(e) {
+      // ALT+A: Toggle Cross-Department View
+      if (e.altKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        showAllDepts = !showAllDepts;
+        localStorage.setItem('mm_show_all_depts', showAllDepts);
+        
+        if (showAllDepts) {
+           showToast("Viewing ALL departments for Core Executives.");
+        } else {
+           showToast("Viewing ONLY Services department tickets.");
+        }
+        applyFilters();
+      }
+
+      // ALT+C: METRICS LOGIC (Fully Automated Mon -> Fri)
       if (e.altKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
         
@@ -1138,9 +1156,19 @@
       const validPriorities = new Set();
       const validAnomalies = new Set();
 
+      const mainAgents = ["Amit Badoni", "Gagandeep Kaur", "Hari Iyer", "Jashandeep Kaur", "Nikunj Singla", "Rahul Kamble", "Shashank Singh"];
+
       let baseFiltered = rawTicketsData.filter(t => {
         const safeStatus = (t.status || "").toLowerCase();
         if (safeStatus === 'closed') return false; 
+
+        // --- ALT+A DEPARTMENT FILTERING ---
+        const safeDept = (t.department || "").toLowerCase();
+        const isCoreAgent = mainAgents.includes(t.owner);
+
+        // If OFF: Hide non-Services. If ON: Hide non-Services UNLESS owned by Core Agent.
+        if (!showAllDepts && safeDept !== 'services') return false;
+        if (showAllDepts && safeDept !== 'services' && !isCoreAgent) return false;
         
         const safeSubj = (t.subject || "").toLowerCase();
         const safeNum = "#" + String(t.ticketNumber || "").toLowerCase();
@@ -1180,7 +1208,6 @@
           }
         }
 
-        const mainAgents = ["Amit Badoni", "Gagandeep Kaur", "Hari Iyer", "Jashandeep Kaur", "Nikunj Singla", "Rahul Kamble", "Shashank Singh"];
         const mOwner = owner === 'ALL' || (owner === 'Others' ? !mainAgents.includes(t.owner) : t.owner === owner);
         
         let mPri = true;
