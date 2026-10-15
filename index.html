@@ -814,33 +814,31 @@
       // ALT+A: Toggle Cross-Department View (Bulletproof for Mac & Windows)
       if (e.altKey && (e.key.toLowerCase() === 'a' || e.code === 'KeyA')) {
         e.preventDefault();
-        
-        // Prevent the keyboard from "spamming" the shortcut if the key is held down
         if (e.repeat) return; 
-
-        console.log("=== DEBUG: Alt+A Pressed ===");
-        console.log("Previous State:", showAllDepts);
 
         showAllDepts = !showAllDepts;
         localStorage.setItem('mm_show_all_depts', showAllDepts);
         
-        console.log("New State:", showAllDepts);
-
-        // 1. Instantly trigger the Toast BEFORE the table freezes the browser
+        // 1. Trigger the Toast immediately
         if (showAllDepts) {
-           console.log("Triggering ALL departments toast...");
            showToast("Showing ALL department tickets for Core Executives");
         } else {
-           console.log("Triggering Services ONLY toast...");
            showToast("Showing Services ONLY tickets");
         }
-        
-        // 2. Give the browser 100ms to visually paint the Toast onto the screen, THEN apply filters
+
+        // 2. Clear the table and show a fast loading spinner so the UI responds instantly
+        document.getElementById('ticketTableBody').innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">
+              <svg class="svg-icon spin" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: var(--accent-primary); margin-bottom: 15px;"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path d="M12 2v4" stroke-width="2"></path></svg>
+              <br>Reorganizing view...
+            </td>
+          </tr>`;
+
+        // 3. Give the browser 300ms to smoothly animate the Toast, THEN run the heavy filters
         setTimeout(() => {
-           console.log("Running heavy applyFilters() function...");
            applyFilters();
-           console.log("Table completely updated.");
-        }, 100);
+        }, 300);
       }
 
       // ALT+C: METRICS LOGIC (Fully Automated Mon -> Fri)
