@@ -815,26 +815,32 @@
       if (e.altKey && (e.key.toLowerCase() === 'a' || e.code === 'KeyA')) {
         e.preventDefault();
         
-        // 1. Prevent the keyboard from "spamming" the shortcut if the key is held down
+        // Prevent the keyboard from "spamming" the shortcut if the key is held down
         if (e.repeat) return; 
+
+        console.log("=== DEBUG: Alt+A Pressed ===");
+        console.log("Previous State:", showAllDepts);
 
         showAllDepts = !showAllDepts;
         localStorage.setItem('mm_show_all_depts', showAllDepts);
         
-        // 2. Run the heavy table filtering first
-        applyFilters();
+        console.log("New State:", showAllDepts);
 
-        // 3. Force the browser to wait exactly 2 animation frames (after the table paints) 
-        // to inject the toast, guaranteeing the CSS animation plays smoothly.
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (showAllDepts) {
-               showToast("Showing ALL department tickets for Core Executives");
-            } else {
-               showToast("Showing Services ONLY tickets");
-            }
-          });
-        });
+        // 1. Instantly trigger the Toast BEFORE the table freezes the browser
+        if (showAllDepts) {
+           console.log("Triggering ALL departments toast...");
+           showToast("Showing ALL department tickets for Core Executives");
+        } else {
+           console.log("Triggering Services ONLY toast...");
+           showToast("Showing Services ONLY tickets");
+        }
+        
+        // 2. Give the browser 100ms to visually paint the Toast onto the screen, THEN apply filters
+        setTimeout(() => {
+           console.log("Running heavy applyFilters() function...");
+           applyFilters();
+           console.log("Table completely updated.");
+        }, 100);
       }
 
       // ALT+C: METRICS LOGIC (Fully Automated Mon -> Fri)
