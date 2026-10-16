@@ -1028,8 +1028,10 @@
           acknowledgedTickets = res.ackList || [];
           
           document.getElementById('kpiLastSync').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ` + (res.data.lastRefreshed || "--");
-          updateKPIs();
+          
+          // Let applyFilters handle the KPI math safely to prevent animation overlap glitches
           applyFilters();
+          
           if (forceRefresh && !isSilent) showToast("Dashboard synchronized successfully.");
         } else if (res.error === "SESSION_EXPIRED") {
           showToast("Session expired. Please log in again.");
