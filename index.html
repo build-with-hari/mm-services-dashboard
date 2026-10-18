@@ -71,6 +71,30 @@
     .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); transition: all 0.4s ease; }
     .glass-panel:hover { box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); border-color: rgba(255, 255, 255, 0.2); }
 
+    /* NOTIFICATION ANIMATIONS */
+    @keyframes ringBell {
+      0% { transform: rotate(0); }
+      10% { transform: rotate(15deg); }
+      20% { transform: rotate(-10deg); }
+      30% { transform: rotate(15deg); }
+      40% { transform: rotate(-10deg); }
+      50% { transform: rotate(0); }
+      100% { transform: rotate(0); }
+    }
+    .bell-ringing svg {
+      animation: ringBell 1.5s ease-in-out infinite;
+      color: var(--danger-color);
+    }
+    @keyframes highlightNew {
+      0% { background-color: rgba(56, 189, 248, 0.25); }
+      100% { background-color: transparent; }
+    }
+    .notif-item.is-new {
+      animation: highlightNew 2.5s ease-out forwards;
+      border-left: 3px solid var(--accent-primary);
+      padding-left: 12px; /* Offsets the border to keep text perfectly aligned */
+    }
+
     /* AUTH UI */
     .auth-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
     .auth-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 3rem 2.5rem; border-radius: 24px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(30px); transition: transform 0.3s ease; }
@@ -544,14 +568,16 @@
       const timeET = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const uniqueId = 'notif_' + Date.now() + '_' + ticketNum; // Generate safe unique ID
       
-      notifications.unshift({ id: uniqueId, ticket: ticketNum, title: title, message: message, time: timeET });
+      // Add 'isNew: true' flag to animate it when opened
+      notifications.unshift({ id: uniqueId, ticket: ticketNum, title: title, message: message, time: timeET, isNew: true });
       if (notifications.length > 50) notifications.pop(); // Keep only last 50 alerts
       
       localStorage.setItem('mm_notifications', JSON.stringify(notifications));
       updateNotificationUI();
       
-      // Fire an un-expiring red toast for anomalies
-      showToast(`<strong>#${ticketNum} - ${title}</strong><br><span style="font-weight:400; font-size:0.8rem;">${message}</span>`, true);
+      // Make the Bell Icon ring instead of showing a Toast
+      const bellBtn = document.querySelector('#notifWrapper button');
+      if (bellBtn) bellBtn.classList.add('bell-ringing');
     }
 
     function updateNotificationUI() {
@@ -563,7 +589,7 @@
       if (notifications.length > 0) {
         badge.classList.add('active');
         body.innerHTML = notifications.map(n => `
-          <div class="notif-item" id="${n.id}">
+          <div class="notif-item ${n.isNew ? 'is-new' : ''}" id="${n.id}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
               <strong onclick="filterFromNotification('${n.ticket}')" title="Filter dashboard for this ticket">#${n.ticket} - ${n.title}</strong>
               <div style="display: flex; align-items: center; gap: 8px;">
@@ -629,11 +655,32 @@
 
     function toggleNotifications() {
       const dd = document.getElementById('notifDropdown');
+      const bellBtn = document.querySelector('#notifWrapper button');
+
       if (dd.classList.contains('open')) {
         closeNotifDropdown();
       } else {
         dd.classList.remove('closing');
         dd.classList.add('open');
+        
+        // Stop the bell from ringing once clicked
+        if (bellBtn) bellBtn.classList.remove('bell-ringing');
+
+        // Wait 2.5 seconds for the pulse animation to finish, then mark as read
+        setTimeout(() => {
+          let changed = false;
+          notifications.forEach(n => {
+            if (n.isNew) {
+              n.isNew = false;
+              changed = true;
+            }
+          });
+          if (changed) {
+              localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+              // Silently remove the class so it doesn't snap if they reopen it
+              document.querySelectorAll('.notif-item.is-new').forEach(el => el.classList.remove('is-new'));
+          }
+        }, 2500);
       }
     }
 
@@ -1058,6 +1105,14 @@
       const sessionToken = localStorage.getItem('mm_ticket_session');
       const idStr = String(ticketId) + "::" + anomalyType;
       
+      // NEW: Clear this ticket out of the Notification Bell automatically
+      const tObj = rawTicketsData.find(t => String(t.id) === String(ticketId));
+      if (tObj && tObj.ticketNumber) {
+          notifications = notifications.filter(n => String(n.ticket) !== String(tObj.ticketNumber));
+          localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+          updateNotificationUI();
+      }
+
       // Update UI Instantly
       const idx = acknowledgedTickets.indexOf(idStr);
       if (idx > -1) acknowledgedTickets.splice(idx, 1);
