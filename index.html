@@ -1138,7 +1138,6 @@
       const idx = acknowledgedTickets.indexOf(idStr);
       if (idx > -1) acknowledgedTickets.splice(idx, 1);
       else acknowledgedTickets.push(idStr);
-      updateKPIs();
       applyFilters();
 
       // Dispatch to Backend to save globally
@@ -1163,7 +1162,10 @@
       const obj = document.getElementById(elementId);
       if (!obj) return;
       const startVal = parseInt(obj.textContent) || 0;
-      if (startVal === newValue) { obj.textContent = newValue; return; }
+      if (startVal === newValue) return; 
+      
+      // NEW: Cancel any existing animation on this element so they don't fight!
+      if (obj.animationFrameId) cancelAnimationFrame(obj.animationFrameId);
       
       const duration = 800; // Time in milliseconds for the roll effect
       let startTime = null;
@@ -1175,10 +1177,13 @@
         const easeOutQuart = 1 - Math.pow(1 - progress, 4); 
         obj.textContent = Math.floor(easeOutQuart * (newValue - startVal) + startVal);
         
-        if (progress < 1) window.requestAnimationFrame(step);
-        else obj.textContent = newValue;
+        if (progress < 1) {
+            obj.animationFrameId = window.requestAnimationFrame(step);
+        } else {
+            obj.textContent = newValue;
+        }
       };
-      window.requestAnimationFrame(step);
+      obj.animationFrameId = window.requestAnimationFrame(step);
     }
 
     function updateKPIs(ticketList) {
@@ -1391,7 +1396,8 @@
               bulkModeBtn.style.display = 'inline-flex';
           } else {
               bulkModeBtn.style.display = 'none';
-              if (isBulkMode) toggleBulkMode(); // Auto-close bulk mode if they switch tabs
+              // Delay closure by 0ms to let the current filter render finish
+              if (isBulkMode) setTimeout(() => toggleBulkMode(), 0); 
           }
       }
 
@@ -1704,8 +1710,6 @@
         
         // Hide bulk mode and instantly update visuals
         toggleBulkMode();
-        updateKPIs();
-        applyFilters();
         showToast(`Processing ${tokensArray.length} acknowledgements...`);
         
         fetch(BACKEND_URL, {
