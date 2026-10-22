@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Focus | Executive AI Ticket Portal</title>
+  
+  <link rel="icon" type="image/x-icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <style>
+    /* SHARED THEME VARIABLES (Matching index.html exactly) */
+    :root {
+      --bg-color: #0b0f19; --glass-bg: rgba(20, 25, 40, 0.65); --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-highlight: rgba(255, 255, 255, 0.08); --text-main: #f8fafc; --text-muted: #94a3b8;
+      --accent-primary: #38bdf8; --accent-hover: #0284c7; --danger-color: #f87171;
+      --warning-color: #fbbf24; --safe-color: #34d399; --card-bg: rgba(17, 24, 39, 0.75);
+      --table-hover: rgba(255, 255, 255, 0.04); --scroll-thumb: rgba(255, 255, 255, 0.25);
+      --header-bg: rgba(15, 20, 32, 0.85);
+    }
+    [data-theme="light"] {
+      --bg-color: #f1f5f9; --glass-bg: rgba(255, 255, 255, 0.75); --glass-border: rgba(0, 0, 0, 0.12);
+      --glass-highlight: rgba(255, 255, 255, 0.9); --text-main: #0f172a; --text-muted: #475569;
+      --accent-primary: #0ea5e9; --accent-hover: #0284c7; --danger-color: #dc2626;
+      --warning-color: #d97706; --safe-color: #059669; --card-bg: rgba(255, 255, 255, 0.85);
+      --table-hover: rgba(0, 0, 0, 0.03); --scroll-thumb: rgba(0, 0, 0, 0.25);
+      --header-bg: rgba(241, 245, 249, 0.85);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; overflow-y: auto; overflow-x: hidden; transition: background-color 0.5s ease; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+    
+    .blob { position: fixed; border-radius: 50%; filter: blur(100px); z-index: -1; opacity: 0.6; animation: float 20s infinite ease-in-out; transition: all 0.5s ease; }
+    .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(129, 140, 248, 0.15); animation-delay: 0s; }
+    .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: rgba(56, 189, 248, 0.2); animation-delay: -5s; }
+    @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(5%, 10%) scale(1.1); } 66% { transform: translate(-5%, -5%) scale(0.9); } }
+
+    @keyframes fadeInBlur { from { opacity: 0; filter: blur(15px); transform: translateY(15px); } to { opacity: 1; filter: blur(0); transform: translateY(0); } }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); filter: blur(5px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+    .app-container { max-width: 1650px; margin: 0 auto; padding: 1rem 1.5rem 0.5rem; animation: fadeInBlur 0.6s ease-out forwards; }
+    
+    .glass-panel { background: var(--glass-bg); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); transition: all 0.4s ease; }
+    
+    /* AUTH UI */
+    .auth-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
+    .auth-card { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 3rem 2.5rem; border-radius: 24px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); backdrop-filter: blur(30px); }
+    
+    .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .brand-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.15rem; background: linear-gradient(90deg, var(--text-main), var(--accent-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-subtitle { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
+    .action-group { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+    
+    .sync-badge { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); color: var(--accent-primary); padding: 0.4rem 0.8rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-right: 0.5rem; backdrop-filter: blur(10px); }
+    button, .btn { cursor: pointer; border: none; padding: 0 1.25rem; height: 40px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; outline: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover)); color: #ffffff; }
+    .btn-outline { background: var(--glass-highlight); color: var(--text-main); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); }
+    .btn-icon { padding: 0; width: 40px; justify-content: center; }
+    .svg-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* CLIENT FOCUS SPECIFIC UI */
+    .client-grid { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.5rem; }
+    .client-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem 1.5rem; cursor: pointer; transition: all 0.3s ease; font-weight: 700; font-size: 1.1rem; flex: 1; min-width: 150px; text-align: center; color: var(--text-muted); opacity: 0.7; }
+    .client-card:hover { opacity: 1; border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+    .client-card.active { opacity: 1; border-color: var(--accent-primary); box-shadow: 0 0 0 2px var(--accent-primary), 0 12px 30px rgba(56, 189, 248, 0.15); background: rgba(56, 189, 248, 0.05); color: var(--accent-primary); }
+
+    .controls-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+    .search-wrapper { position: relative; flex: 1; min-width: 250px; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 14px; opacity: 0.5; width: 16px; height: 16px; color: var(--text-main); pointer-events: none; }
+    .search-input { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: var(--text-main); padding: 0.7rem 2.6rem; border-radius: 12px; outline: none; font-size: 0.85rem; width: 100%; height: 42px; }
+
+    /* TABLE */
+    .table-container { max-height: calc(100vh - 250px); overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+    th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(24px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; }
+    td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; background: transparent; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--table-hover); }
+    tr.rendered-row { animation: fadeSlideUp 0.4s ease backwards; }
+    
+    /* BADGES */
+    .inline-icon { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; margin-right: 5px; vertical-align: text-bottom; }
+    .badge { padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.3px; }
+    .badge-normal { background: rgba(52, 211, 153, 0.1); color: var(--safe-color); border-color: rgba(52, 211, 153, 0.25); }
+    .badge-anomaly { background: rgba(248, 113, 113, 0.1); color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3); }
+    .badge-dismissed { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.3); text-decoration: line-through; }
+    .status-badge { font-weight: 600; color: var(--text-main); background: var(--glass-highlight); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--glass-border); display: inline-block; }
+    .aging-badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; margin-top: 6px; font-weight: 700; white-space: nowrap; }
+    .aging-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger-color); border: 1px solid rgba(248, 113, 113, 0.3); }
+    .ai-action-box { margin-top: 10px; background: rgba(56, 189, 248, 0.05); border-left: 3px solid var(--accent-primary); padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+    /* TOAST */
+    #toastContainer { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column-reverse; gap: 12px; align-items: flex-end; pointer-events: none; }
+    .toast { background: var(--header-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 14px 24px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; animation: fadeSlideUp 0.4s ease forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div id="toastContainer"></div>
+
+  <div class="app-container">
+    <div id="authPanel" class="auth-wrapper">
+      <div class="auth-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 54px; height: 54px; color: var(--accent-primary); margin-bottom: 1rem;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <h2 style="font-size: 1.6rem; margin-bottom: 0.5rem; letter-spacing: -0.5px;">Client Focus Portal</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem;">Sign in to view priority client status.</p>
+        <div style="display: flex; justify-content: center; min-height: 44px;">
+          <div id="g_id_onload" data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com" data-context="signin" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
+          <div class="g_id_signin" data-type="standard" data-theme="outline" data-size="large"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dashboardPanel" style="display: none;">
+      <div class="glass-panel" style="padding: 1.25rem 1.5rem;">
+        <div class="header-bar">
+          <div style="display: flex; align-items: center; gap: 1.25rem;">
+            <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 42px; border-radius: 10px;">
+            <div>
+              <div class="brand-title">Client Focus View</div>
+              <div class="brand-subtitle">Cross-Department Ticket Tracking</div>
+            </div>
+          </div>
+          <div class="action-group">
+            <a href="?page=index" class="btn btn-outline" style="text-decoration: none;">
+              <svg class="svg-icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Main
+            </a>
+            <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn">
+              <svg class="svg-icon" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <button class="btn-primary" onclick="loadDashboardData(true)" id="zohoBtn">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Sync Zoho
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIORITY CLIENT SELECTOR -->
+      <div class="client-grid" id="clientSelectorBox">
+        <div class="client-card active" onclick="setClientFilter('All Priority', this)">All Priority</div>
+        <div class="client-card" onclick="setClientFilter('Quantum', this)">Quantum</div>
+        <div class="client-card" onclick="setClientFilter('Acceletrex', this)">Acceletrex</div>
+        <!-- Add more hardcoded clients here as needed -->
+      </div>
+
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <div class="controls-bar">
+          <div class="search-wrapper">
+            <svg class="search-icon svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search filtered tickets..." oninput="applyFilters()">
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 12%;">Date & Ticket #</th>
+                <th style="width: 12%;">Client & Dept</th>
+                <th style="width: 12%;">Owner & Priority</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 12%;">Module & Class</th>
+                <th style="width: 12%;">AI Status</th>
+                <th style="width: 22%;">Subject & Executive Summary</th>
+                <th style="width: 8%; text-align: right;">Link</th>
+              </tr>
+            </thead>
+            <tbody id="ticketTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
+    let rawTicketsData = [];
+    let acknowledgedTickets = [];
+    let currentClientFilter = "All Priority";
+    
+    // HARDCODED PRIORITY CLIENT LIST
+    const PRIORITY_CLIENTS = ["quantum", "acceletrex"]; 
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('mm_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      const token = localStorage.getItem('mm_ticket_session');
+      const expiresAt = localStorage.getItem('mm_ticket_session_expiry');
+      if (token && expiresAt && new Date().getTime() < parseInt(expiresAt, 10)) {
+        document.getElementById('authPanel').style.display = 'none';
+        document.getElementById('dashboardPanel').style.display = 'block';
+        loadDashboardData(false);
+      }
+    });
+
+    function handleGoogleLogin(response) {
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "authenticate", idToken: response.credential })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          localStorage.setItem('mm_ticket_session', data.sessionToken);
+          localStorage.setItem('mm_ticket_session_expiry', data.expiresAt);
+          document.getElementById('authPanel').style.display = 'none';
+          document.getElementById('dashboardPanel').style.display = 'block';
+          loadDashboardData(false);
+        } else {
+          showToast("Authentication Failed");
+        }
+      });
+    }
+
+    function loadDashboardData(forceRefresh) {
+      const token = localStorage.getItem('mm_ticket_session');
+      const btn = document.getElementById('zohoBtn');
+      btn.innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v4"></path></svg> Syncing...`;
+      
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          rawTicketsData = res.data.tickets || [];
+          acknowledgedTickets = res.ackList || [];
+          applyFilters();
+          showToast("Data Synced.");
+        } else {
+          showToast("Session Expired.");
+        }
+      })
+      .finally(() => {
+        btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Force Zoho Sync`;
+      });
+    }
+
+    function setClientFilter(clientName, el) {
+      currentClientFilter = clientName;
+      document.querySelectorAll('.client-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const tbody = document.getElementById('ticketTableBody');
+      tbody.innerHTML = '';
+
+      let filtered = rawTicketsData.filter(t => {
+        const safeStatus = (t.status || "").toLowerCase();
+        const safeDept = (t.department || "").toLowerCase();
+        const safeClient = (t.clientName || "").toLowerCase();
+        
+        // 1. Only show Open/Working tickets in Support or Services
+        if (safeStatus === 'closed' || safeStatus === 'resolved') return false;
+        if (safeDept !== 'support' && safeDept !== 'services') return false;
+
+        // 2. Client Filtering
+        if (currentClientFilter === 'All Priority') {
+            // Check if the ticket client matches ANY of our hardcoded priority clients
+            const isPriority = PRIORITY_CLIENTS.some(pc => safeClient.includes(pc));
+            if (!isPriority) return false;
+        } else {
+            if (!safeClient.includes(currentClientFilter.toLowerCase())) return false;
+        }
+
+        // 3. Search Bar
+        const mQuery = !query || safeClient.includes(query) || (t.subject||'').toLowerCase().includes(query) || (t.owner||'').toLowerCase().includes(query);
+        return mQuery;
+      });
+
+      // Sort Newest First
+      filtered.sort((a, b) => new Date(b.createdDate || 0) - new Date(a.createdDate || 0));
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">No priority tickets found.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const dObj = new Date(t.createdDate);
+        const exactDateStr = isNaN(dObj) ? "Unknown" : dObj.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+        
+        let deptPill = `<span style="display:inline-block; margin-top:6px; padding:3px 8px; border-radius:6px; font-size:0.7rem; font-weight:600; background:var(--glass-highlight); border:1px solid var(--glass-border); color:var(--text-muted);">${t.department || 'Unknown'}</span>`;
+        
+        const isAnomaly = (t.hasAnomaly === true || t.hasAnomaly === "true");
+        const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
+        
+        let badgeHtml = `<span class="badge badge-normal"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Healthy</span>`;
+        if (isAnomaly && !isDismissed) {
+             badgeHtml = `<span class="badge badge-anomaly"><svg class="inline-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ${t.anomalyType}</span>`;
+        }
+
+        let aiActionHtml = '';
+        if (isAnomaly && !isDismissed && t.suggestedAction) {
+            aiActionHtml = `<div class="ai-action-box"><strong>Action:</strong> ${t.suggestedAction} <button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}', '${t.anomalyType}')">Acknowledge</button></div>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = "rendered-row";
+        tr.innerHTML = `
+          <td><strong style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}</strong><br><small style="color: var(--text-muted);">${exactDateStr}</small></td>
+          <td><strong style="color: var(--text-main);">${t.clientName}</strong><br>${deptPill}</td>
+          <td><span style="font-weight: 600;">${t.owner}</span><br><small style="color: var(--accent-primary); font-weight: 700;">● ${(t.priority || 'Normal').toUpperCase()}</small></td>
+          <td><span class="status-badge">${t.status}</span></td>
+          <td><small style="color: var(--text-main); font-weight: 600; display: block;">${t.classification}</small><small style="color: var(--text-muted); margin-top: 4px; display: inline-block;">${t.module}</small></td>
+          <td>${badgeHtml}</td>
+          <td style="line-height: 1.4;"><strong style="display: block; margin-bottom: 0.3rem;">${t.subject || "No Subject"}</strong><span style="color: var(--text-muted); font-size: 0.85rem;">${t.aiSummary || ""}</span>${aiActionHtml}</td>
+          <td style="text-align: right;"><a href="${t.url}" target="_blank" class="btn btn-outline" style="padding: 0 0.8rem; height: 30px; font-size: 0.75rem;">Open</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleAcknowledge(ticketId, anomalyType) {
+      const sessionToken = localStorage.getItem('mm_ticket_session');
+      const idStr = String(ticketId) + "::" + anomalyType;
+      
+      const idx = acknowledgedTickets.indexOf(idStr);
+      if (idx > -1) acknowledgedTickets.splice(idx, 1);
+      else acknowledgedTickets.push(idStr);
+      applyFilters();
+
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "toggleAcknowledge", sessionToken: sessionToken, ticketId: ticketId, anomalyType: anomalyType })
+      }).then(res => res.json()).then(res => {
+        if (res.success) acknowledgedTickets = res.ackList || [];
+      });
+    }
+
+    function toggleTheme() {
+      const nt = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nt);
+      localStorage.setItem('mm_theme', nt);
+    }
+
+    function showToast(msg) {
+       const tc = document.getElementById('toastContainer');
+       const t = document.createElement('div');
+       t.className = 'toast';
+       t.innerHTML = `<svg class="svg-icon" style="color:var(--accent-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> <div>${msg}</div>`;
+       tc.appendChild(t);
+       setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+    }
+  </script>
+</body>
+</html>
