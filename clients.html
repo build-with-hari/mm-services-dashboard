@@ -121,7 +121,7 @@
             </div>
           </div>
           <div class="action-group">
-            <a href="?page=index" class="btn btn-outline" style="text-decoration: none;">
+            <a href="#" onclick="navigateTo('index'); return false;" class="btn btn-outline" style="text-decoration: none;">
               <svg class="svg-icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Main
             </a>
             <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn">
@@ -173,6 +173,10 @@
 
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
+
+    // NEW ROUTER
+    function navigateTo(page) { window.open(BACKEND_URL + "?page=" + page, "_top"); }
+
     let rawTicketsData = [];
     let acknowledgedTickets = [];
     let currentClientFilter = "All Priority";
