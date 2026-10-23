@@ -1487,6 +1487,11 @@
         const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
         const isOverloaded = (t.anomalyType === "API Overloaded" || (t.aiSummary || "").includes("free-tier"));
 
+        // NEW: Trigger the bell notification for any active, unacknowledged anomaly
+        if (isAnomaly && !isDismissed && !isOverloaded) {
+            triggerAlert(t.ticketNumber, t.anomalyType || "SLA Alert", t.suggestedAction || "Ticket requires attention.");
+        }
+
         let parsedSummary = t.aiSummary || "";
         if (parsedSummary.includes(" | ")) {
             parsedSummary = "• " + parsedSummary.split(" | ").join("<br>• ");
