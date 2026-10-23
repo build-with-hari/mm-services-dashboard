@@ -136,10 +136,7 @@
 
       <!-- PRIORITY CLIENT SELECTOR -->
       <div class="client-grid" id="clientSelectorBox">
-        <div class="client-card active" onclick="setClientFilter('All Priority', this)">All Priority</div>
-        <div class="client-card" onclick="setClientFilter('Quantum', this)">Quantum</div>
-        <div class="client-card" onclick="setClientFilter('Acceletrex', this)">Acceletrex</div>
-        <!-- Add more hardcoded clients here as needed -->
+        <!-- Rendered dynamically via JS -->
       </div>
 
       <div class="glass-panel" style="padding: 1.5rem;">
@@ -181,12 +178,54 @@
     let acknowledgedTickets = [];
     let currentClientFilter = "All Priority";
     
-    // HARDCODED PRIORITY CLIENT LIST
-    const PRIORITY_CLIENTS = ["quantum", "acceletrex"]; 
+    // DYNAMIC PRIORITY CLIENT LIST (Saved to your browser)
+    let priorityClients = JSON.parse(localStorage.getItem('mm_priority_clients')) || ["Quantum", "Acceletrex"];
+
+    function renderClientGrid() {
+        const box = document.getElementById('clientSelectorBox');
+        let html = `<div class="client-card ${currentClientFilter === 'All Priority' ? 'active' : ''}" onclick="setClientFilter('All Priority', this)">All Priority</div>`;
+
+        priorityClients.forEach((client, index) => {
+            const isActive = currentClientFilter.toLowerCase() === client.toLowerCase() ? 'active' : '';
+            html += `
+            <div class="client-card ${isActive}" style="position: relative; padding-right: 2.5rem;" onclick="setClientFilter('${client}', this)">
+                ${client}
+                <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--danger-color); font-size: 1.4rem; cursor: pointer; padding: 0 5px;" onclick="removeClient(${index}, event)" data-tooltip="Remove">&times;</span>
+            </div>`;
+        });
+
+        html += `<div class="client-card" style="border: 1px dashed var(--glass-border); opacity: 0.6;" onclick="addClient()">+ Add Client</div>`;
+        box.innerHTML = html;
+    }
+
+    function addClient() {
+        const client = prompt("Enter the Client Name (or part of the name) to track:");
+        if (client && client.trim() !== "") {
+            priorityClients.push(client.trim());
+            localStorage.setItem('mm_priority_clients', JSON.stringify(priorityClients));
+            renderClientGrid();
+            applyFilters();
+        }
+    }
+
+    function removeClient(index, event) {
+        event.stopPropagation(); // Prevents the card click event from firing
+        if (confirm(`Stop tracking ${priorityClients[index]}?`)) {
+            const removed = priorityClients.splice(index, 1)[0];
+            localStorage.setItem('mm_priority_clients', JSON.stringify(priorityClients));
+            if (currentClientFilter.toLowerCase() === removed.toLowerCase()) {
+                currentClientFilter = 'All Priority';
+            }
+            renderClientGrid();
+            applyFilters();
+        }
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('mm_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
+
+      renderClientGrid(); // NEW: Draw the dynamic buttons
       
       const token = localStorage.getItem('mm_ticket_session');
       const expiresAt = localStorage.getItem('mm_ticket_session_expiry');
@@ -245,8 +284,7 @@
 
     function setClientFilter(clientName, el) {
       currentClientFilter = clientName;
-      document.querySelectorAll('.client-card').forEach(c => c.classList.remove('active'));
-      el.classList.add('active');
+      renderClientGrid(); // Redraws the grid to handle the active styling
       applyFilters();
     }
 
@@ -257,17 +295,15 @@
 
       let filtered = rawTicketsData.filter(t => {
         const safeStatus = (t.status || "").toLowerCase();
-        const safeDept = (t.department || "").toLowerCase();
         const safeClient = (t.clientName || "").toLowerCase();
         
-        // 1. Only show Open/Working tickets in Support or Services
+        // 1. Only show Open/Working tickets (Removed the strict department block here)
         if (safeStatus === 'closed' || safeStatus === 'resolved') return false;
-        if (safeDept !== 'support' && safeDept !== 'services') return false;
 
-        // 2. Client Filtering
+        // 2. Dynamic Client Filtering (Contains Search)
         if (currentClientFilter === 'All Priority') {
-            // Check if the ticket client matches ANY of our hardcoded priority clients
-            const isPriority = PRIORITY_CLIENTS.some(pc => safeClient.includes(pc));
+            if (priorityClients.length === 0) return false;
+            const isPriority = priorityClients.some(pc => safeClient.includes(pc.toLowerCase()));
             if (!isPriority) return false;
         } else {
             if (!safeClient.includes(currentClientFilter.toLowerCase())) return false;
