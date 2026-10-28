@@ -715,10 +715,9 @@
             if (!safeClient.includes(filterSafe) && !strippedClient.includes(filterSafe.replace(/[^a-z0-9]/g, ''))) return false;
         }
 
+        // --- FIXED: Department & Agent Restrictions Removed ---
+        // Client Focus view allows ALL departments and ALL agents to pass through
         const safeDept = (t.department || "").toLowerCase();
-        const isCoreAgent = mainAgents.includes(t.owner);
-        if (!showAllDepts && safeDept !== 'services') return false;
-        if (showAllDepts && safeDept !== 'services' && !isCoreAgent) return false;
         
         const safeSubj = (t.subject || "").toLowerCase();
         const safeNum = "#" + String(t.ticketNumber || "").toLowerCase();
