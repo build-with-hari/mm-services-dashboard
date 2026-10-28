@@ -392,7 +392,18 @@
     
     // CLIENT FOCUS VARIABLES
     let currentClientFilter = "All Priority";
-    let priorityClients = JSON.parse(localStorage.getItem('mm_priority_clients')) || ["Quantum", "Acceletrex"];
+    let priorityClients = ["Quantum", "Acceletrex"]; // Default, will be overwritten by backend
+    
+    // NEW: Function to push updates to the backend
+    function saveClientsToBackend() {
+        const token = localStorage.getItem('mm_ticket_session');
+        fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: "savePriorityClients", sessionToken: token, clients: priorityClients }),
+            redirect: 'follow'
+        });
+    }
     let clientToDeleteIndex = -1;
     let showAllDepts = localStorage.getItem('mm_show_all_depts') === 'true';
 
@@ -490,7 +501,7 @@
         const client = document.getElementById('newClientInput').value;
         if (client && client.trim() !== "") {
             priorityClients.push(client.trim());
-            localStorage.setItem('mm_priority_clients', JSON.stringify(priorityClients));
+            saveClientsToBackend(); // <-- Now saves globally to Google Apps Script
             renderClientGrid();
             applyFilters();
         }
@@ -507,7 +518,7 @@
     document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
         if (clientToDeleteIndex > -1) {
             const removed = priorityClients.splice(clientToDeleteIndex, 1)[0];
-            localStorage.setItem('mm_priority_clients', JSON.stringify(priorityClients));
+            saveClientsToBackend(); // <-- Now saves globally to Google Apps Script
             if (currentClientFilter.toLowerCase() === removed.toLowerCase()) currentClientFilter = 'All Priority';
             renderClientGrid();
             applyFilters();
@@ -650,6 +661,12 @@
         if (res.success) {
           rawTicketsData = (res.data.tickets || []).filter(t => t && t.id);
           acknowledgedTickets = res.ackList || [];
+          
+          // NEW: Inject global priority clients from backend
+          if (res.priorityClients) {
+              priorityClients = res.priorityClients;
+              renderClientGrid();
+          }
           
           const syncLabel = document.getElementById('kpiLastSync');
           if(syncLabel) syncLabel.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ` + (res.data.lastRefreshed || "--");
