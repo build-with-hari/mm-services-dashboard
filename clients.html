@@ -327,7 +327,8 @@
       fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "authenticate", idToken: response.credential })
+        body: JSON.stringify({ action: "authenticate", idToken: response.credential }),
+        redirect: 'follow' // <-- ADDED
       })
       .then(res => res.json())
       .then(data => {
@@ -351,7 +352,8 @@
       fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh })
+        body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh }),
+        redirect: 'follow' // <-- ADDED
       })
       .then(res => res.json())
       .then(res => {
@@ -533,7 +535,8 @@
       fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "toggleAcknowledge", sessionToken: sessionToken, ticketId: ticketId, anomalyType: anomalyType })
+        body: JSON.stringify({ action: "toggleAcknowledge", sessionToken: sessionToken, ticketId: ticketId, anomalyType: anomalyType }),
+        redirect: 'follow' // <-- ADDED
       }).then(res => res.json()).then(res => {
         if (res.success) acknowledgedTickets = res.ackList || [];
       });
