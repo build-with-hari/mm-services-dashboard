@@ -143,32 +143,43 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 54px; height: 54px; color: var(--accent-primary); margin-bottom: 1rem;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         <h2 style="font-size: 1.6rem; margin-bottom: 0.5rem; letter-spacing: -0.5px;">Client Focus Portal</h2>
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem;">Sign in to view priority client status.</p>
-        <div style="display: flex; justify-content: center; min-height: 44px;">
-          <div id="g_id_onload" data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com" data-context="signin" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-          <div class="g_id_signin" data-type="standard" data-theme="outline" data-size="large"></div>
+        <div style="display: flex; justify-content: center; position: relative; min-height: 44px;">
+          <!-- Added data-ux_mode="popup" to fix the hanging screen -->
+          <div id="g_id_onload" data-client_id="992801995818-qpj2t94ou9d48qt3mk1a485ckvuo121i.apps.googleusercontent.com" data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
+          <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-size="large"></div>
         </div>
+        <p id="authError" style="color: var(--danger-color); font-weight: 600; margin-top: 1.5rem; display: none; font-size: 0.85rem; padding: 10px; background: rgba(248, 113, 113, 0.1); border-radius: 8px; border: 1px solid rgba(248, 113, 113, 0.3); word-break: break-word;"></p>
       </div>
     </div>
 
     <div id="dashboardPanel" style="display: none;">
-      <div class="glass-panel" style="padding: 1.25rem 1.5rem;">
+      <div class="glass-panel" style="padding: 1.25rem 1.5rem; position: relative; z-index: 100;">
         <div class="header-bar">
           <div style="display: flex; align-items: center; gap: 1.25rem;">
-            <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 42px; border-radius: 10px;">
+            <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=64" alt="Logo" style="height: 42px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <div>
               <div class="brand-title">Client Focus View</div>
               <div class="brand-subtitle">Cross-Department Ticket Tracking</div>
             </div>
           </div>
           <div class="action-group">
-            <a href="index.html" class="btn btn-outline" style="text-decoration: none;">
-              <svg class="svg-icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Main
+            <span id="kpiLastSync" class="sync-badge" data-tooltip="Last database fetch">
+              <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> --
+            </span>
+            <span id="userGreeting" style="font-weight: 600; margin-right: 0.5rem; color: var(--text-muted); font-size: 0.9rem;"></span>
+            
+            <a href="index.html" class="btn btn-outline btn-icon" data-tooltip="Back to Main">
+              <svg class="svg-icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </a>
-            <button class="btn-outline btn-icon" onclick="toggleTheme()" id="themeBtn">
-              <svg class="svg-icon" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            
+            <button class="btn-outline btn-icon" onclick="exportToCSV()" data-tooltip="Export Visible to CSV">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
-            <button class="btn-primary" onclick="loadDashboardData(true)" id="zohoBtn">
+            <button class="btn-primary" onclick="loadDashboardData(true)" id="zohoBtn" data-tooltip="Force Refresh Database">
               <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Sync Zoho
+            </button>
+            <button class="btn-danger btn-icon" onclick="logout()" data-tooltip="Sign Out">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
           </div>
         </div>
@@ -271,11 +282,6 @@
               <div data-value="priority">Sort: Highest Priority</div>
             </div>
           </div>
-
-          <button id="bulkModeToggleBtn" class="btn-outline" onclick="toggleBulkMode()" style="display:none; height: 42px; padding: 0 1.25rem;">
-            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-            Select Multiple
-          </button>
         </div>
 
         <div class="table-container">
@@ -289,7 +295,7 @@
                 <th style="width: 12%;">Module & Class</th>
                 <th style="width: 12%;">AI Status</th>
                 <th style="width: 22%;">Subject & Executive Summary</th>
-                <th style="width: 8%; text-align: right;">Link</th>
+                <th style="width: 8%; text-align: right; padding-right: 1.5rem;">Link</th>
               </tr>
             </thead>
             <tbody id="ticketTableBody"></tbody>
@@ -297,7 +303,6 @@
         </div>
       </div>
     </div>
-  </div>
 
   <!-- CUSTOM ADD CLIENT MODAL -->
   <div id="addClientModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation: fadeInBlur 0.3s ease forwards;">
@@ -337,10 +342,6 @@
     let currentFilteredData = []; 
     let currentKpiFilter = "ALL";
     let acknowledgedTickets = [];
-
-    // BULK VARIABLES
-    let isBulkMode = false;
-    let selectedTickets = new Set();
     
     // CLIENT FOCUS VARIABLES
     let currentClientFilter = "All Priority";
@@ -348,7 +349,55 @@
     let clientToDeleteIndex = -1;
     let showAllDepts = localStorage.getItem('mm_show_all_depts') === 'true';
 
-    // MISSING TIME FORMATTER
+    // BULLETPROOF LOGIN ATTACHMENT
+    window.handleGoogleLogin = function(response) {
+      document.getElementById('authError').style.display = 'none';
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "authenticate", idToken: response.credential }),
+        redirect: 'follow'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          localStorage.setItem('mm_ticket_session', data.sessionToken);
+          localStorage.setItem('mm_ticket_session_expiry', data.expiresAt);
+          localStorage.setItem('mm_ticket_user_name', data.userName);
+          const greeting = document.getElementById('userGreeting');
+          if (greeting) greeting.textContent = "Hi, " + data.userName.split(' ')[0];
+          showDashboardUI();
+          loadDashboardData(false);
+        } else {
+          showAuthError(data.message || "Authentication failed.");
+        }
+      }).catch(err => showAuthError("Network error connecting to backend."));
+    };
+
+    function showAuthError(msg) {
+      const errEl = document.getElementById('authError');
+      if (errEl) {
+          errEl.innerHTML = `<strong>Authentication Failed:</strong><br>${msg}`;
+          errEl.style.display = 'block';
+      }
+    }
+
+    function showDashboardUI() { 
+      document.getElementById('authPanel').style.display = 'none'; 
+      document.getElementById('dashboardPanel').style.display = 'block'; 
+    }
+    
+    function showAuthUI() { 
+      document.getElementById('authPanel').style.display = 'flex'; 
+      document.getElementById('dashboardPanel').style.display = 'none'; 
+    }
+    
+    function logout() { 
+      localStorage.removeItem('mm_ticket_session'); 
+      showAuthUI(); 
+      showToast("Signed out."); 
+    }
+
     function getRelativeTimeET(dateString) {
       if (!dateString) return "Unknown";
       const dObj = new Date(dateString);
@@ -512,50 +561,6 @@
       });
     }
 
-    function setupDraggableFab() {
-      const fab = document.getElementById('floatingClearBtn');
-      let isDragging = false;
-      let dragStartX, dragStartY, initialLeft, initialTop;
-      fab.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        dragStartX = e.clientX; dragStartY = e.clientY;
-        const rect = fab.getBoundingClientRect();
-        initialLeft = rect.left; initialTop = rect.top;
-        fab.style.transition = 'none'; 
-      });
-      document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        fab.style.left = `${initialLeft + (e.clientX - dragStartX)}px`;
-        fab.style.top = `${initialTop + (e.clientY - dragStartY)}px`;
-        fab.style.bottom = 'auto'; 
-      });
-      document.addEventListener('mouseup', (e) => {
-        if (isDragging) {
-          isDragging = false;
-          fab.style.transition = 'opacity 0.3s ease, transform 0.3s ease, background 0.3s ease';
-          if (Math.abs(e.clientX - dragStartX) < 5 && Math.abs(e.clientY - dragStartY) < 5) clearAllFilters();
-        }
-      });
-    }
-
-    function clearAllFilters() {
-       const defaultSelections = {
-         'dd-anomaly': 'All Health Statuses', 'dd-owner': 'All Executives',
-         'dd-priority': 'All Priorities', 'dd-sort': 'Sort: Newest First'
-       };
-       for (const [id, text] of Object.entries(defaultSelections)) {
-        const dd = document.getElementById(id);
-        if (dd) {
-            const val = id === 'dd-sort' ? 'date-new' : 'ALL';
-            dd.setAttribute('data-value', val);
-            dd.querySelector('.dropdown-selected').innerHTML = `${text} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-        }
-      }
-      showAllDepts = false;
-      localStorage.setItem('mm_show_all_depts', false);
-      applyFilters();
-    }
-
     function clearSearch() {
       const input = document.getElementById('searchInput');
       input.value = '';
@@ -563,22 +568,63 @@
       input.focus();
     }
 
-    document.addEventListener('keydown', async function(e) {
-      if (e.altKey && (e.key.toLowerCase() === 'a' || e.code === 'KeyA')) {
-        e.preventDefault();
-        if (e.repeat) return; 
-        showAllDepts = !showAllDepts;
-        localStorage.setItem('mm_show_all_depts', showAllDepts);
-        document.getElementById('ticketTableBody').innerHTML = `
-          <tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">
-              <svg class="svg-icon spin" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: var(--accent-primary); margin-bottom: 15px;"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path d="M12 2v4" stroke-width="2"></path></svg>
-              <br>Reorganizing view...
-            </td></tr>`;
-        showToast(showAllDepts ? "Showing ALL department tickets for Core Executives" : "Showing Services ONLY tickets");
-        await new Promise(resolve => setTimeout(resolve, 100));
-        applyFilters();
+    function showSkeletons() {
+      const tbody = document.getElementById('ticketTableBody');
+      tbody.innerHTML = '';
+      for(let i=0; i<8; i++) {
+        tbody.innerHTML += `
+          <tr class="skeleton-row">
+            <td><div class="skeleton-box" style="width: 60%"></div><div class="skeleton-box" style="width: 80%"></div></td>
+            <td><div class="skeleton-box" style="width: 90%"></div></td>
+            <td><div class="skeleton-box" style="width: 90%"></div></td>
+            <td><div class="skeleton-box" style="width: 80%"></div></td>
+            <td><div class="skeleton-box" style="width: 100%; height: 24px; border-radius: 6px;"></div></td>
+            <td><div class="skeleton-box" style="width: 90%"></div><div class="skeleton-box" style="width: 100%"></div></td>
+            <td><div class="skeleton-box" style="width: 100%; height: 28px;"></div></td>
+            <td></td>
+          </tr>`;
       }
-    });
+    }
+
+    function loadDashboardData(forceRefresh) {
+      const token = localStorage.getItem('mm_ticket_session');
+      const btn = document.getElementById('zohoBtn');
+      if (btn) btn.innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v4"></path></svg> Syncing...`;
+      showSkeletons();
+      
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh }),
+        redirect: 'follow'
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          rawTicketsData = (res.data.tickets || []).filter(t => t && t.id);
+          acknowledgedTickets = res.ackList || [];
+          
+          const syncLabel = document.getElementById('kpiLastSync');
+          if(syncLabel) syncLabel.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ` + (res.data.lastRefreshed || "--");
+          
+          applyFilters();
+          if (forceRefresh) showToast("Dashboard synchronized successfully.");
+        } else if (res.error === "SESSION_EXPIRED") {
+          showToast("Session expired. Please log in again.");
+          logout();
+        } else {
+          showToast("Error: " + res.message);
+          document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to load data.</td></tr>`;
+        }
+      })
+      .catch(err => {
+        showToast("Error loading data. Check console for details.");
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">Failed to retrieve data.</td></tr>`;
+      })
+      .finally(() => {
+        if (btn) btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Force Zoho Sync`;
+      });
+    }
 
     // --- MEGA FILTER ENGINE ---
     function applyFilters() {
@@ -700,12 +746,6 @@
           });
       }
 
-      const fab = document.getElementById('floatingClearBtn');
-      if (fab) {
-          if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts) fab.classList.add('visible');
-          else fab.classList.remove('visible');
-      }
-
       updateKPIs(baseFiltered);
 
       // PASS 2: Apply Status/Anomaly KPI filter
@@ -737,45 +777,22 @@
 
       currentFilteredData = filtered;
 
-      const bulkModeBtn = document.getElementById('bulkModeToggleBtn');
-      if (bulkModeBtn) {
-          if (currentKpiFilter === 'ANOMALIES' && filtered.length > 0) bulkModeBtn.style.display = 'inline-flex';
-          else {
-              bulkModeBtn.style.display = 'none';
-              if (isBulkMode) setTimeout(() => toggleBulkMode(), 0); 
-          }
-      }
-
       const thead = document.querySelector('table thead tr');
       if (thead) {
-          if (isBulkMode) {
-              thead.innerHTML = `
-                <th style="width: 4%; text-align:center;"><input type="checkbox" class="cb-custom" onclick="toggleAllBulk(this)"></th>
-                <th style="width: 11%;">Date & Ticket #</th>
-                <th style="width: 11%;">Client & Dept</th>
-                <th style="width: 11%;">Owner & Priority</th>
-                <th style="width: 10%;">Status</th>
-                <th style="width: 11%;">Module & Class</th>
-                <th style="width: 11%;">AI Status</th>
-                <th style="width: 23%;">Subject & Executive Summary</th>
-                <th style="width: 8%; text-align: right; padding-right: 1.5rem;">Link</th>
-              `;
-          } else {
-              thead.innerHTML = `
-                <th style="width: 12%;">Date & Ticket #</th>
-                <th style="width: 12%;">Client & Dept</th>
-                <th style="width: 12%;">Owner & Priority</th>
-                <th style="width: 10%;">Status</th>
-                <th style="width: 12%;">Module & Class</th>
-                <th style="width: 12%;">AI Status</th>
-                <th style="width: 22%;">Subject & Executive Summary</th>
-                <th style="width: 8%; text-align: right; padding-right: 1.5rem;">Link</th>
-              `;
-          }
+          thead.innerHTML = `
+            <th style="width: 12%;">Date & Ticket #</th>
+            <th style="width: 12%;">Client & Dept</th>
+            <th style="width: 12%;">Owner & Priority</th>
+            <th style="width: 10%;">Status</th>
+            <th style="width: 12%;">Module & Class</th>
+            <th style="width: 12%;">AI Status</th>
+            <th style="width: 22%;">Subject & Executive Summary</th>
+            <th style="width: 8%; text-align: right; padding-right: 1.5rem;">Link</th>
+          `;
       }
 
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 4rem; color: var(--text-muted);">No priority tickets match criteria.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">No priority tickets match criteria.</td></tr>`;
         return;
       }
 
@@ -823,11 +840,6 @@
 
         let parsedSummary = t.aiSummary || "";
         if (parsedSummary.includes(" | ")) parsedSummary = "• " + parsedSummary.split(" | ").join("<br>• ");
-        parsedSummary = parsedSummary.replace(/\[target:(\d+)\]/g, (match, ms) => {
-            const targetMs = parseInt(ms, 10);
-            const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
-            return `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.1em;">${minsLeft}</span> minutes`;
-        });
 
         let badgeHtml = '';
         if (parsedSummary === "Pending AI") {
@@ -848,27 +860,16 @@
         
         if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
             const btnText = isDismissed ? 'Restore' : 'Acknowledge';
-            const actionBtn = (isAnomaly && !isOverloaded && !isBulkMode) ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}', '${safeAnomalyType}')">${btnText}</button>` : '';
+            const actionBtn = (isAnomaly && !isOverloaded) ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}', '${safeAnomalyType}')">${btnText}</button>` : '';
             aiActionHtml = `<div class="ai-action-box"><span><svg class="inline-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path><line x1="9" y1="21" x2="15" y2="21"></line></svg> <strong>Action:</strong> ${t.suggestedAction}</span> ${actionBtn}</div>`;
         }
 
         const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         let deptPill = `<span style="display:inline-block; margin-top:6px; padding:3px 8px; border-radius:6px; font-size:0.7rem; font-weight:600; background:var(--glass-highlight); border:1px solid var(--glass-border); color:var(--text-muted); letter-spacing:0.3px;">${t.department || 'Unknown'}</span>`;
 
-        let bulkCell = '';
-        if (isBulkMode) {
-            if (isAnomaly && !isDismissed && !isOverloaded) {
-                const key = t.id + "::" + safeAnomalyType;
-                const isChecked = selectedTickets.has(key) ? 'checked' : '';
-                bulkCell = `<td style="text-align:center; vertical-align:middle;"><input type="checkbox" class="cb-custom bulk-cb" value="${key}" onclick="handleBulkCheck('${t.id}', '${safeAnomalyType}', this)" ${isChecked}></td>`;
-            } else {
-                bulkCell = `<td></td>`;
-            }
-        }
-
         const tr = document.createElement('tr');
         tr.className = "rendered-row";
-        tr.innerHTML = bulkCell + `
+        tr.innerHTML = `
           <td>
             <strong class="copyable" onclick="copyToCB('${safeTicketNum}')" data-tooltip="Copy ID" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}${copySvg}</strong><br>
             ${displayDateHtml}<br>${agingHtml}
@@ -910,13 +911,6 @@
       const sessionToken = localStorage.getItem('mm_ticket_session');
       const idStr = String(ticketId) + "::" + anomalyType;
       
-      const tObj = rawTicketsData.find(t => String(t.id) === String(ticketId));
-      if (tObj && tObj.ticketNumber) {
-          notifications = notifications.filter(n => String(n.ticket) !== String(tObj.ticketNumber));
-          localStorage.setItem('mm_notifications', JSON.stringify(notifications));
-          updateNotificationUI();
-      }
-
       const idx = acknowledgedTickets.indexOf(idStr);
       if (idx > -1) acknowledgedTickets.splice(idx, 1);
       else acknowledgedTickets.push(idStr);
@@ -932,134 +926,50 @@
       });
     }
 
-    function toggleTheme() {
-      const nt = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', nt);
-      localStorage.setItem('mm_theme', nt);
+    function exportToCSV() {
+      if (!currentFilteredData || !currentFilteredData.length) return showToast("No data to export.");
+      let csv = 'Ticket #,Created Date,Client,Department,Module,Owner,Priority,Status,Classification,Is Anomaly,Anomaly Type,AI Summary,Suggested Action,URL\n';
+      currentFilteredData.forEach(t => {
+        const row = [ t.ticketNumber, t.createdDate, `"${t.clientName}"`, `"${t.department||''}"`, `"${t.module}"`, `"${t.owner}"`, t.priority, t.status, `"${t.classification}"`, t.hasAnomaly, `"${t.anomalyType||''}"`, `"${(t.aiSummary||'').replace(/"/g, '""')}"`, `"${(t.suggestedAction||'').replace(/"/g, '""')}"`, t.url ];
+        csv += row.join(',') + '\n';
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `Client_Focus_Export_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      showToast("CSV Export Started.");
     }
 
-    function showToast(msg, isAlert = false) {
+    function showToast(msg) {
        const tc = document.getElementById('toastContainer');
-       
-       let clearBtn = document.getElementById('toastClearAllBtn');
-       if (!clearBtn) {
-         clearBtn = document.createElement('button');
-         clearBtn.id = 'toastClearAllBtn';
-         clearBtn.className = 'toast-clear-all';
-         clearBtn.innerHTML = `<svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Clear All`;
-         clearBtn.onclick = () => {
-           document.querySelectorAll('.toast').forEach(t => {
-              t.style.opacity = '0';
-              t.style.transform = 'translateX(50px) scale(0.9)';
-              setTimeout(() => t.remove(), 300);
-           });
-           setTimeout(checkToasts, 350);
-         };
-         tc.prepend(clearBtn); 
-       }
-
        const t = document.createElement('div');
-       t.className = isAlert ? 'toast alert-toast' : 'toast'; 
-       
-       const icon = isAlert
-         ? `<svg class="svg-icon" style="color:var(--danger-color); flex-shrink: 0;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`
-         : `<svg class="svg-icon" style="color:var(--accent-primary); flex-shrink: 0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-
-       t.innerHTML = `
-         ${icon} 
-         <div style="flex-grow: 1;">${msg}</div>
-         <div class="toast-close" onclick="this.parentElement.style.opacity='0'; this.parentElement.style.transform='translateX(50px) scale(0.9)'; setTimeout(() => { this.parentElement.remove(); checkToasts(); }, 300);">
-           <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-         </div>
-       `;
-       
-       tc.insertBefore(t, clearBtn.nextSibling);
-       checkToasts();
-
-       if (!isAlert) {
-         setTimeout(() => { 
-           t.style.opacity = '0'; 
-           t.style.transform = 'translateX(50px) scale(0.9)'; 
-           setTimeout(() => { t.remove(); checkToasts(); }, 300); 
-         }, 3000);
-       }
+       t.className = 'toast';
+       t.innerHTML = `<svg class="svg-icon" style="color:var(--accent-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> <div>${msg}</div>`;
+       tc.appendChild(t);
+       setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
     }
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('mm_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      renderClientGrid(); 
+      setupCustomDropdowns();
+      
+      const token = localStorage.getItem('mm_ticket_session');
+      const expiresAt = localStorage.getItem('mm_ticket_session_expiry');
+      const userName = localStorage.getItem('mm_ticket_user_name');
 
-    function checkToasts() {
-      const tc = document.getElementById('toastContainer');
-      const clearBtn = document.getElementById('toastClearAllBtn');
-      if (tc && clearBtn) {
-        const alertCount = tc.querySelectorAll('.alert-toast').length;
-        if (alertCount > 1) clearBtn.classList.add('visible'); 
-        else clearBtn.classList.remove('visible');
+      if (token && expiresAt && new Date().getTime() < parseInt(expiresAt, 10)) {
+        const greeting = document.getElementById('userGreeting');
+        if (greeting && userName) greeting.textContent = "Hi, " + userName.split(' ')[0];
+        showDashboardUI();
+        loadDashboardData(false);
+      } else {
+        showAuthUI();
       }
-    }
-
-    // --- BULK ACKNOWLEDGEMENT FUNCTIONS ---
-    function toggleBulkMode() {
-        isBulkMode = !isBulkMode;
-        selectedTickets.clear();
-        const bar = document.getElementById('bulkActionBar');
-        if (isBulkMode) bar.classList.add('visible');
-        else bar.classList.remove('visible');
-        document.getElementById('bulkCount').textContent = "0";
-        applyFilters(); 
-    }
-    
-    function handleBulkCheck(ticketId, anomalyType, cb) {
-        const key = ticketId + "::" + anomalyType;
-        if (cb.checked) selectedTickets.add(key);
-        else selectedTickets.delete(key);
-        document.getElementById('bulkCount').textContent = selectedTickets.size;
-    }
-    
-    function toggleAllBulk(cb) {
-        const checkboxes = document.querySelectorAll('.bulk-cb');
-        selectedTickets.clear();
-        checkboxes.forEach(c => {
-            c.checked = cb.checked;
-            if (cb.checked) selectedTickets.add(c.value);
-        });
-        document.getElementById('bulkCount').textContent = selectedTickets.size;
-    }
-    
-    function executeBulkAcknowledge() {
-        if (selectedTickets.size === 0) return showToast("No tickets selected to acknowledge.");
-        
-        const sessionToken = localStorage.getItem('mm_ticket_session');
-        const tokensArray = Array.from(selectedTickets);
-        
-        tokensArray.forEach(idStr => {
-            if (!acknowledgedTickets.includes(idStr)) acknowledgedTickets.push(idStr);
-            const tId = idStr.split("::")[0];
-            const tObj = rawTicketsData.find(t => String(t.id) === String(tId));
-            if (tObj && tObj.ticketNumber) {
-                notifications = notifications.filter(n => String(n.ticket) !== String(tObj.ticketNumber));
-            }
-        });
-        
-        localStorage.setItem('mm_notifications', JSON.stringify(notifications));
-        updateNotificationUI();
-        
-        toggleBulkMode();
-        showToast(`Processing ${tokensArray.length} acknowledgements...`);
-        
-        fetch(BACKEND_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: "bulkAcknowledge", sessionToken: sessionToken, tokens: tokensArray }),
-            redirect: 'follow'
-        })
-        .then(res => res.json())
-        .then(res => {
-            if (res.success) {
-                acknowledgedTickets = res.ackList || [];
-                showToast("Successfully acknowledged selected tickets.");
-            } else {
-                showToast("Failed to save bulk acknowledgement remotely.");
-            }
-        }).catch(err => showToast("Network error."));
-    }
+    });
   </script>
 </body>
 </html>
