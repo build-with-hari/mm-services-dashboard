@@ -236,15 +236,29 @@
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw3FMh8pUQCoNsFecEnZDTFs9045A7BOa1JUhlw9Y-wYMLJLqW5GHrkye0qD7xP7UR8/exec";
 
-    // NEW ROUTER
     function navigateTo(page) { window.open(BACKEND_URL + "?page=" + page, "_top"); }
 
     let rawTicketsData = [];
     let acknowledgedTickets = [];
     let currentClientFilter = "All Priority";
     
-    // DYNAMIC PRIORITY CLIENT LIST (Saved to your browser)
     let priorityClients = JSON.parse(localStorage.getItem('mm_priority_clients')) || ["Quantum", "Acceletrex"];
+
+    // MISSING TIME FORMATTER ADDED
+    function getRelativeTimeET(dateString) {
+      if (!dateString) return "Unknown";
+      const dObj = new Date(dateString);
+      if (isNaN(dObj)) return "Unknown";
+      
+      const diffMins = Math.floor((new Date() - dObj) / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      
+      if (diffMins < 1) return "Just now";
+      if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      if (Math.floor(diffHours / 24) === 1) return `Yesterday at ${dObj.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })}`;
+      return dObj.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
 
     function renderClientGrid() {
         const box = document.getElementById('clientSelectorBox');
@@ -269,7 +283,6 @@
 
     let clientToDeleteIndex = -1;
 
-    // --- CUSTOM UI REPLACEMENT FOR NATIVE PROMPT ---
     function addClient() {
         document.getElementById('newClientInput').value = '';
         document.getElementById('addClientModal').style.display = 'flex';
@@ -312,7 +325,7 @@
       const savedTheme = localStorage.getItem('mm_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
 
-      renderClientGrid(); // NEW: Draw the dynamic buttons
+      renderClientGrid(); 
       
       const token = localStorage.getItem('mm_ticket_session');
       const expiresAt = localStorage.getItem('mm_ticket_session_expiry');
@@ -328,7 +341,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "authenticate", idToken: response.credential }),
-        redirect: 'follow' // <-- ADDED
+        redirect: 'follow'
       })
       .then(res => res.json())
       .then(data => {
@@ -353,7 +366,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh }),
-        redirect: 'follow' // <-- ADDED
+        redirect: 'follow'
       })
       .then(res => res.json())
       .then(res => {
@@ -367,13 +380,13 @@
         }
       })
       .finally(() => {
-        btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Force Zoho Sync`;
+        btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Sync Zoho`;
       });
     }
 
     function setClientFilter(clientName, el) {
       currentClientFilter = clientName;
-      renderClientGrid(); // Redraws the grid to handle the active styling
+      renderClientGrid(); 
       applyFilters();
     }
 
@@ -474,6 +487,7 @@
         const displaySummary = (parsedSummary === "Pending AI") ? "<em>AI is reviewing thread in background...</em>" : parsedSummary;
         let aiActionHtml = '';
         
+        // BUG FIX: Removed 'isBulkMode' reference that was crashing the render
         if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
             const btnText = isDismissed ? 'Restore' : 'Acknowledge';
             const actionBtn = (isAnomaly && !isOverloaded) ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}', '${safeAnomalyType}')">${btnText}</button>` : '';
@@ -536,7 +550,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "toggleAcknowledge", sessionToken: sessionToken, ticketId: ticketId, anomalyType: anomalyType }),
-        redirect: 'follow' // <-- ADDED
+        redirect: 'follow'
       }).then(res => res.json()).then(res => {
         if (res.success) acknowledgedTickets = res.ackList || [];
       });
