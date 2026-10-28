@@ -179,12 +179,103 @@
         <!-- Rendered dynamically via JS -->
       </div>
 
+      <!-- ALL 8 KPIs (Ported from Main Dashboard) -->
+      <div class="kpi-container">
+        <div class="kpi-card active" id="kpi-all" onclick="setKpiFilter('ALL')">
+          <div class="kpi-label">Total Priority</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-anomalies" onclick="setKpiFilter('ANOMALIES')">
+          <div class="kpi-label">Active Anomalies</div>
+          <div class="kpi-value" style="color: var(--danger-color);" id="kpiAnomalies">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-healthy" onclick="setKpiFilter('HEALTHY')">
+          <div class="kpi-label">Healthy / Processing</div>
+          <div class="kpi-value" style="color: var(--safe-color);" id="kpiHealthy">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-open" onclick="setKpiFilter('Open')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Open</div>
+          <div class="kpi-value" id="kpiOpen">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-inprogress" onclick="setKpiFilter('In Progress')">
+          <div class="kpi-label" style="color: var(--accent-primary);">In Progress</div>
+          <div class="kpi-value" id="kpiInProgress">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-pending" onclick="setKpiFilter('Pending')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Pending</div>
+          <div class="kpi-value" id="kpiPending">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-review" onclick="setKpiFilter('Review')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Review</div>
+          <div class="kpi-value" id="kpiReview">0</div>
+        </div>
+        <div class="kpi-card" id="kpi-awaitingresponse" onclick="setKpiFilter('Awaiting Response')">
+          <div class="kpi-label" style="color: var(--accent-primary);">Awaiting Response</div>
+          <div class="kpi-value" id="kpiAwaiting">0</div>
+        </div>
+      </div>
+
       <div class="glass-panel" style="padding: 1.5rem;">
         <div class="controls-bar">
           <div class="search-wrapper">
             <svg class="search-icon svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search filtered tickets..." oninput="applyFilters()">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search (Subject, Client, Status, Module, Owner...)" oninput="applyFilters()">
+            <svg class="search-clear svg-icon" viewBox="0 0 24 24" onclick="clearSearch()"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </div>
+
+          <div class="custom-dropdown" id="dd-anomaly" data-value="ALL">
+            <div class="dropdown-selected">All Health Statuses <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+            <div class="dropdown-items">
+              <div data-value="ALL">All Health Statuses</div>
+              <div data-value="Healthy">Healthy Only</div>
+              <div data-value="SLA Breached">SLA Breached</div>
+              <div data-value="Customer Waiting">Customer Waiting</div>
+              <div data-value="Stale Ticket">Stale Ticket</div>
+              <div data-value="Awaiting Fix">Awaiting Fix (Acknowledged)</div>
+            </div>
+          </div>
+          
+          <div class="custom-dropdown" id="dd-owner" data-value="ALL">
+            <div class="dropdown-selected">All Executives <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+            <div class="dropdown-items">
+              <div data-value="ALL">All Executives</div>
+              <div data-value="Amit Badoni">Amit Badoni</div>
+              <div data-value="Gagandeep Kaur">Gagandeep Kaur</div>
+              <div data-value="Hari Iyer">Hari Iyer</div>
+              <div data-value="Jashandeep Kaur">Jashandeep Kaur</div>
+              <div data-value="Nikunj Singla">Nikunj Singla</div>
+              <div data-value="Rahul Kamble">Rahul Kamble</div>
+              <div data-value="Shashank Singh">Shashank Singh</div>
+              <div data-value="Others">Others</div>
+            </div>
+          </div>
+
+          <div class="custom-dropdown" id="dd-priority" data-value="ALL">
+            <div class="dropdown-selected">All Priorities <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+            <div class="dropdown-items">
+              <div data-value="ALL">All Priorities</div>
+              <div data-value="Critical">Critical Priority</div>
+              <div data-value="Urgent">Urgent Only</div>
+              <div data-value="High">High Priority</div>
+              <div data-value="Medium">Medium</div>
+              <div data-value="Low">Low / Normal</div>
+            </div>
+          </div>
+
+          <div class="custom-dropdown" id="dd-sort" data-value="date-new">
+            <div class="dropdown-selected">Sort: Newest First <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+            <div class="dropdown-items">
+              <div data-value="date-new">Sort: Newest First</div>
+              <div data-value="date-old">Sort: Oldest First</div>
+              <div data-value="idle">Sort: Longest Idle</div>
+              <div data-value="priority">Sort: Highest Priority</div>
+            </div>
+          </div>
+
+          <button id="bulkModeToggleBtn" class="btn-outline" onclick="toggleBulkMode()" style="display:none; height: 42px; padding: 0 1.25rem;">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            Select Multiple
+          </button>
         </div>
 
         <div class="table-container">
@@ -243,20 +334,27 @@
     function navigateTo(page) { window.open(BACKEND_URL + "?page=" + page, "_top"); }
 
     let rawTicketsData = [];
+    let currentFilteredData = []; 
+    let currentKpiFilter = "ALL";
     let acknowledgedTickets = [];
-    let currentClientFilter = "All Priority";
-    
-    let priorityClients = JSON.parse(localStorage.getItem('mm_priority_clients')) || ["Quantum", "Acceletrex"];
 
-    // MISSING TIME FORMATTER ADDED
+    // BULK VARIABLES
+    let isBulkMode = false;
+    let selectedTickets = new Set();
+    
+    // CLIENT FOCUS VARIABLES
+    let currentClientFilter = "All Priority";
+    let priorityClients = JSON.parse(localStorage.getItem('mm_priority_clients')) || ["Quantum", "Acceletrex"];
+    let clientToDeleteIndex = -1;
+    let showAllDepts = localStorage.getItem('mm_show_all_depts') === 'true';
+
+    // MISSING TIME FORMATTER
     function getRelativeTimeET(dateString) {
       if (!dateString) return "Unknown";
       const dObj = new Date(dateString);
       if (isNaN(dObj)) return "Unknown";
-      
       const diffMins = Math.floor((new Date() - dObj) / 60000);
       const diffHours = Math.floor(diffMins / 60);
-      
       if (diffMins < 1) return "Just now";
       if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
       if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
@@ -264,6 +362,7 @@
       return dObj.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
     }
 
+    // --- CLIENT FOCUS GRID LOGIC ---
     function renderClientGrid() {
         const box = document.getElementById('clientSelectorBox');
         let html = `<div class="client-card ${currentClientFilter === 'All Priority' ? 'active' : ''}" onclick="setClientFilter('All Priority', this)">All Priority</div>`;
@@ -284,8 +383,6 @@
         </div>`;
         box.innerHTML = html;
     }
-
-    let clientToDeleteIndex = -1;
 
     function addClient() {
         document.getElementById('newClientInput').value = '';
@@ -315,9 +412,7 @@
         if (clientToDeleteIndex > -1) {
             const removed = priorityClients.splice(clientToDeleteIndex, 1)[0];
             localStorage.setItem('mm_priority_clients', JSON.stringify(priorityClients));
-            if (currentClientFilter.toLowerCase() === removed.toLowerCase()) {
-                currentClientFilter = 'All Priority';
-            }
+            if (currentClientFilter.toLowerCase() === removed.toLowerCase()) currentClientFilter = 'All Priority';
             renderClientGrid();
             applyFilters();
             showToast(`${removed} removed from tracking.`);
@@ -325,86 +420,195 @@
         document.getElementById('deleteClientModal').style.display = 'none';
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = localStorage.getItem('mm_theme') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-
-      renderClientGrid(); 
-      
-      const token = localStorage.getItem('mm_ticket_session');
-      const expiresAt = localStorage.getItem('mm_ticket_session_expiry');
-      if (token && expiresAt && new Date().getTime() < parseInt(expiresAt, 10)) {
-        document.getElementById('authPanel').style.display = 'none';
-        document.getElementById('dashboardPanel').style.display = 'block';
-        loadDashboardData(false);
-      }
-    });
-
-    function handleGoogleLogin(response) {
-      fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "authenticate", idToken: response.credential }),
-        redirect: 'follow'
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          localStorage.setItem('mm_ticket_session', data.sessionToken);
-          localStorage.setItem('mm_ticket_session_expiry', data.expiresAt);
-          document.getElementById('authPanel').style.display = 'none';
-          document.getElementById('dashboardPanel').style.display = 'block';
-          loadDashboardData(false);
-        } else {
-          showToast("Authentication Failed");
-        }
-      });
-    }
-
-    function loadDashboardData(forceRefresh) {
-      const token = localStorage.getItem('mm_ticket_session');
-      const btn = document.getElementById('zohoBtn');
-      btn.innerHTML = `<svg class="svg-icon spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v4"></path></svg> Syncing...`;
-      
-      fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "getDashboardData", sessionToken: token, forceRefresh: forceRefresh }),
-        redirect: 'follow'
-      })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) {
-          rawTicketsData = res.data.tickets || [];
-          acknowledgedTickets = res.ackList || [];
-          applyFilters();
-          showToast("Data Synced.");
-        } else {
-          showToast("Session Expired.");
-        }
-      })
-      .finally(() => {
-        btn.innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17l4 4 4-4"></path></svg> Sync Zoho`;
-      });
-    }
-
     function setClientFilter(clientName, el) {
       currentClientFilter = clientName;
       renderClientGrid(); 
       applyFilters();
     }
 
+    // --- KPI LOGIC ---
+    function animateCounter(elementId, newValue) {
+      const obj = document.getElementById(elementId);
+      if (!obj) return;
+      const startVal = parseInt(obj.textContent) || 0;
+      if (startVal === newValue) return; 
+      if (obj.animationFrameId) cancelAnimationFrame(obj.animationFrameId);
+      const duration = 800;
+      let startTime = null;
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4); 
+        obj.textContent = Math.floor(easeOutQuart * (newValue - startVal) + startVal);
+        if (progress < 1) obj.animationFrameId = window.requestAnimationFrame(step);
+        else obj.textContent = newValue;
+      };
+      obj.animationFrameId = window.requestAnimationFrame(step);
+    }
+
+    function updateKPIs(ticketList) {
+      const activeTickets = (ticketList || rawTicketsData).filter(t => (t.status || "").toLowerCase() !== 'closed');
+      const total = activeTickets.length;
+      const anomalies = activeTickets.filter(t => (t.hasAnomaly === true || t.hasAnomaly === "true") && !acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType)).length;
+      
+      animateCounter('kpiTotal', total);
+      animateCounter('kpiAnomalies', anomalies);
+      animateCounter('kpiHealthy', total - anomalies);
+
+      const sCounts = { 'open': 0, 'in progress': 0, 'pending': 0, 'review': 0, 'awaiting response': 0 };
+      activeTickets.forEach(t => {
+         const stat = (t.status || "").toLowerCase();
+         if (sCounts[stat] !== undefined) sCounts[stat]++;
+      });
+
+      animateCounter('kpiOpen', sCounts['open']);
+      animateCounter('kpiInProgress', sCounts['in progress']);
+      animateCounter('kpiPending', sCounts['pending']);
+      animateCounter('kpiReview', sCounts['review']);
+      animateCounter('kpiAwaiting', sCounts['awaiting response']);
+    }
+
+    function setKpiFilter(filter) {
+      currentKpiFilter = filter;
+      document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
+      const safeId = filter.toLowerCase().replace(/\s+/g, '');
+      const targetCard = document.getElementById('kpi-' + safeId);
+      if (targetCard) targetCard.classList.add('active');
+      else document.getElementById('kpi-all').classList.add('active');
+      applyFilters();
+    }
+
+    // --- DROPDOWNS & FAB UI ---
+    function setupCustomDropdowns() {
+      document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+        const selected = dropdown.querySelector('.dropdown-selected');
+        const items = dropdown.querySelector('.dropdown-items');
+        const options = items.querySelectorAll('div');
+        selected.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeAllDropdowns(dropdown);
+          items.style.display = items.style.display === 'block' ? 'none' : 'block';
+          selected.classList.toggle('active');
+        });
+        options.forEach(opt => {
+          opt.addEventListener('click', () => {
+            selected.innerHTML = `${opt.textContent} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+            dropdown.setAttribute('data-value', opt.getAttribute('data-value'));
+            items.style.display = 'none';
+            selected.classList.remove('active');
+            applyFilters();
+          });
+        });
+      });
+      document.addEventListener('click', closeAllDropdowns);
+    }
+
+    function closeAllDropdowns(except = null) {
+      document.querySelectorAll('.custom-dropdown').forEach(dd => {
+        if (dd !== except) {
+          dd.querySelector('.dropdown-items').style.display = 'none';
+          dd.querySelector('.dropdown-selected').classList.remove('active');
+        }
+      });
+    }
+
+    function setupDraggableFab() {
+      const fab = document.getElementById('floatingClearBtn');
+      let isDragging = false;
+      let dragStartX, dragStartY, initialLeft, initialTop;
+      fab.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        dragStartX = e.clientX; dragStartY = e.clientY;
+        const rect = fab.getBoundingClientRect();
+        initialLeft = rect.left; initialTop = rect.top;
+        fab.style.transition = 'none'; 
+      });
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        fab.style.left = `${initialLeft + (e.clientX - dragStartX)}px`;
+        fab.style.top = `${initialTop + (e.clientY - dragStartY)}px`;
+        fab.style.bottom = 'auto'; 
+      });
+      document.addEventListener('mouseup', (e) => {
+        if (isDragging) {
+          isDragging = false;
+          fab.style.transition = 'opacity 0.3s ease, transform 0.3s ease, background 0.3s ease';
+          if (Math.abs(e.clientX - dragStartX) < 5 && Math.abs(e.clientY - dragStartY) < 5) clearAllFilters();
+        }
+      });
+    }
+
+    function clearAllFilters() {
+       const defaultSelections = {
+         'dd-anomaly': 'All Health Statuses', 'dd-owner': 'All Executives',
+         'dd-priority': 'All Priorities', 'dd-sort': 'Sort: Newest First'
+       };
+       for (const [id, text] of Object.entries(defaultSelections)) {
+        const dd = document.getElementById(id);
+        if (dd) {
+            const val = id === 'dd-sort' ? 'date-new' : 'ALL';
+            dd.setAttribute('data-value', val);
+            dd.querySelector('.dropdown-selected').innerHTML = `${text} <svg class="dropdown-arrow svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+        }
+      }
+      showAllDepts = false;
+      localStorage.setItem('mm_show_all_depts', false);
+      applyFilters();
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('searchInput');
+      input.value = '';
+      applyFilters();
+      input.focus();
+    }
+
+    document.addEventListener('keydown', async function(e) {
+      if (e.altKey && (e.key.toLowerCase() === 'a' || e.code === 'KeyA')) {
+        e.preventDefault();
+        if (e.repeat) return; 
+        showAllDepts = !showAllDepts;
+        localStorage.setItem('mm_show_all_depts', showAllDepts);
+        document.getElementById('ticketTableBody').innerHTML = `
+          <tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">
+              <svg class="svg-icon spin" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: var(--accent-primary); margin-bottom: 15px;"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path d="M12 2v4" stroke-width="2"></path></svg>
+              <br>Reorganizing view...
+            </td></tr>`;
+        showToast(showAllDepts ? "Showing ALL department tickets for Core Executives" : "Showing Services ONLY tickets");
+        await new Promise(resolve => setTimeout(resolve, 100));
+        applyFilters();
+      }
+    });
+
+    // --- MEGA FILTER ENGINE ---
     function applyFilters() {
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const clearBtn = document.querySelector('.search-clear');
+      if (clearBtn) {
+          if (query.length > 0) clearBtn.classList.add('visible');
+          else clearBtn.classList.remove('visible');
+      }
+
+      const owner = document.getElementById('dd-owner') ? document.getElementById('dd-owner').getAttribute('data-value') : 'ALL';
+      const priority = document.getElementById('dd-priority') ? document.getElementById('dd-priority').getAttribute('data-value') : 'ALL';
+      const anomalyFilter = document.getElementById('dd-anomaly') ? document.getElementById('dd-anomaly').getAttribute('data-value') : 'ALL';
+      const sortVal = document.getElementById('dd-sort') ? document.getElementById('dd-sort').getAttribute('data-value') : 'date-new';
+      
       const tbody = document.getElementById('ticketTableBody');
       tbody.innerHTML = '';
 
-      let filtered = rawTicketsData.filter(t => {
+      const validOwners = new Set();
+      const validPriorities = new Set();
+      const validAnomalies = new Set();
+      const mainAgents = ["Amit Badoni", "Gagandeep Kaur", "Hari Iyer", "Jashandeep Kaur", "Nikunj Singla", "Rahul Kamble", "Shashank Singh"];
+
+      // PASS 1: Base Filter (Client Focus + App-Wide Settings)
+      let baseFiltered = rawTicketsData.filter(t => {
         const safeStatus = (t.status || "").toLowerCase();
+        if (safeStatus === 'closed' || safeStatus === 'resolved') return false; 
+        
         const safeClient = (t.clientName || "").toLowerCase();
         const strippedClient = safeClient.replace(/[^a-z0-9]/g, '');
-        
-        if (safeStatus === 'closed' || safeStatus === 'resolved') return false;
 
         if (currentClientFilter === 'All Priority') {
             if (priorityClients.length === 0) return false;
@@ -418,14 +622,160 @@
             if (!safeClient.includes(filterSafe) && !strippedClient.includes(filterSafe.replace(/[^a-z0-9]/g, ''))) return false;
         }
 
-        const mQuery = !query || safeClient.includes(query) || (t.subject||'').toLowerCase().includes(query) || (t.owner||'').toLowerCase().includes(query);
-        return mQuery;
+        const safeDept = (t.department || "").toLowerCase();
+        const isCoreAgent = mainAgents.includes(t.owner);
+        if (!showAllDepts && safeDept !== 'services') return false;
+        if (showAllDepts && safeDept !== 'services' && !isCoreAgent) return false;
+        
+        const safeSubj = (t.subject || "").toLowerCase();
+        const safeNum = "#" + String(t.ticketNumber || "").toLowerCase();
+        const safeOwner = (t.owner || "").toLowerCase();
+        const safePri = (t.priority || "").toLowerCase();
+        const safeClass = (t.classification || "").toLowerCase();
+        const safeMod = (t.module || "").toLowerCase();
+        const safeAnomaly = (t.anomalyType || "").toLowerCase();
+
+        const mQuery = !query || safeSubj.includes(query) || safeNum.includes(query) || safeClient.includes(query) || safeOwner.includes(query) || safePri.includes(query) || safeStatus.includes(query) || safeClass.includes(query) || safeMod.includes(query) || safeDept.includes(query);
+
+        let mAnomaly = true;
+        const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
+        const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
+        const isActivelyFlagged = isAnomalyRaw && !isDismissed;
+
+        if (anomalyFilter !== 'ALL') {
+          if (anomalyFilter === 'Healthy') mAnomaly = !isActivelyFlagged;
+          else if (anomalyFilter === 'Awaiting Fix') mAnomaly = isDismissed; 
+          else mAnomaly = safeAnomaly.includes(anomalyFilter.toLowerCase()) && !isDismissed;
+        }
+
+        const mOwner = owner === 'ALL' || (owner === 'Others' ? !mainAgents.includes(t.owner) : t.owner === owner);
+        
+        let mPri = true;
+        if (priority === 'Critical') mPri = safePri === 'critical';
+        else if (priority === 'Urgent') mPri = safePri === 'urgent';
+        else if (priority === 'High') mPri = safePri === 'high';
+        else if (priority === 'Medium') mPri = safePri === 'medium';
+        else if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
+
+        if (mQuery) {
+            if (mAnomaly && mPri) {
+                validOwners.add(t.owner);
+                if (!mainAgents.includes(t.owner)) validOwners.add('Others');
+            }
+            if (mOwner && mAnomaly) {
+                if (safePri === 'critical') validPriorities.add('Critical');
+                else if (safePri === 'urgent') validPriorities.add('Urgent');
+                else if (safePri === 'high') validPriorities.add('High');
+                else if (safePri === 'medium') validPriorities.add('Medium');
+                else if (safePri === 'low' || safePri === 'normal') validPriorities.add('Low');
+            }
+            if (mOwner && mPri) {
+                if (!isActivelyFlagged) validAnomalies.add('Healthy');
+                if (isDismissed) validAnomalies.add('Awaiting Fix');
+                if (isActivelyFlagged) {
+                    if (safeAnomaly.includes('sla breached')) validAnomalies.add('SLA Breached');
+                    if (safeAnomaly.includes('customer waiting')) validAnomalies.add('Customer Waiting');
+                    if (safeAnomaly.includes('stale ticket')) validAnomalies.add('Stale Ticket');
+                }
+            }
+        }
+        return mQuery && mOwner && mPri && mAnomaly;
       });
 
-      filtered.sort((a, b) => new Date(b.createdDate || 0) - new Date(a.createdDate || 0));
+      if (document.getElementById('dd-owner')) {
+          document.querySelectorAll('#dd-owner .dropdown-items div').forEach(div => {
+              const val = div.getAttribute('data-value');
+              if (val === 'ALL' || validOwners.has(val)) div.style.display = 'block';
+              else div.style.display = 'none';
+          });
+          document.querySelectorAll('#dd-priority .dropdown-items div').forEach(div => {
+              const val = div.getAttribute('data-value');
+              if (val === 'ALL' || validPriorities.has(val)) div.style.display = 'block';
+              else div.style.display = 'none';
+          });
+          document.querySelectorAll('#dd-anomaly .dropdown-items div').forEach(div => {
+              const val = div.getAttribute('data-value');
+              if (val === 'ALL' || validAnomalies.has(val)) div.style.display = 'block';
+              else div.style.display = 'none';
+          });
+      }
+
+      const fab = document.getElementById('floatingClearBtn');
+      if (fab) {
+          if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts) fab.classList.add('visible');
+          else fab.classList.remove('visible');
+      }
+
+      updateKPIs(baseFiltered);
+
+      // PASS 2: Apply Status/Anomaly KPI filter
+      let filtered = baseFiltered.filter(t => {
+        const safeStatus = (t.status || "").toLowerCase();
+        const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
+        const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
+        const isActivelyFlagged = isAnomalyRaw && !isDismissed;
+
+        let mKpi = true;
+        if (currentKpiFilter === 'ANOMALIES') mKpi = isActivelyFlagged;
+        else if (currentKpiFilter === 'HEALTHY') mKpi = !isActivelyFlagged;
+        else if (currentKpiFilter !== 'ALL') mKpi = (safeStatus === currentKpiFilter.toLowerCase());
+
+        return mKpi;
+      });
+
+      // SORT ENGINE 
+      filtered.sort((a, b) => {
+        if (sortVal === 'date-new') return new Date(b.createdDate || 0) - new Date(a.createdDate || 0);
+        if (sortVal === 'date-old') return new Date(a.createdDate || 0) - new Date(b.createdDate || 0);
+        if (sortVal === 'idle') return new Date(a.modifiedDate || 0) - new Date(b.modifiedDate || 0); 
+        if (sortVal === 'priority') {
+          const p = {'critical':5,'urgent':4,'high':3,'medium':2,'low':1,'normal':0};
+          return (p[(b.priority||'').toLowerCase()]||0) - (p[(a.priority||'').toLowerCase()]||0);
+        }
+        return 0;
+      });
+
+      currentFilteredData = filtered;
+
+      const bulkModeBtn = document.getElementById('bulkModeToggleBtn');
+      if (bulkModeBtn) {
+          if (currentKpiFilter === 'ANOMALIES' && filtered.length > 0) bulkModeBtn.style.display = 'inline-flex';
+          else {
+              bulkModeBtn.style.display = 'none';
+              if (isBulkMode) setTimeout(() => toggleBulkMode(), 0); 
+          }
+      }
+
+      const thead = document.querySelector('table thead tr');
+      if (thead) {
+          if (isBulkMode) {
+              thead.innerHTML = `
+                <th style="width: 4%; text-align:center;"><input type="checkbox" class="cb-custom" onclick="toggleAllBulk(this)"></th>
+                <th style="width: 11%;">Date & Ticket #</th>
+                <th style="width: 11%;">Client & Dept</th>
+                <th style="width: 11%;">Owner & Priority</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 11%;">Module & Class</th>
+                <th style="width: 11%;">AI Status</th>
+                <th style="width: 23%;">Subject & Executive Summary</th>
+                <th style="width: 8%; text-align: right; padding-right: 1.5rem;">Link</th>
+              `;
+          } else {
+              thead.innerHTML = `
+                <th style="width: 12%;">Date & Ticket #</th>
+                <th style="width: 12%;">Client & Dept</th>
+                <th style="width: 12%;">Owner & Priority</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 12%;">Module & Class</th>
+                <th style="width: 12%;">AI Status</th>
+                <th style="width: 22%;">Subject & Executive Summary</th>
+                <th style="width: 8%; text-align: right; padding-right: 1.5rem;">Link</th>
+              `;
+          }
+      }
 
       if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);">No priority tickets match criteria.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 4rem; color: var(--text-muted);">No priority tickets match criteria.</td></tr>`;
         return;
       }
 
@@ -473,6 +823,11 @@
 
         let parsedSummary = t.aiSummary || "";
         if (parsedSummary.includes(" | ")) parsedSummary = "• " + parsedSummary.split(" | ").join("<br>• ");
+        parsedSummary = parsedSummary.replace(/\[target:(\d+)\]/g, (match, ms) => {
+            const targetMs = parseInt(ms, 10);
+            const minsLeft = Math.max(0, Math.ceil((targetMs - Date.now()) / 60000));
+            return `<span class="live-countdown" data-target="${targetMs}" style="font-weight:800; color:var(--danger-color); font-size:1.1em;">${minsLeft}</span> minutes`;
+        });
 
         let badgeHtml = '';
         if (parsedSummary === "Pending AI") {
@@ -491,19 +846,29 @@
         const displaySummary = (parsedSummary === "Pending AI") ? "<em>AI is reviewing thread in background...</em>" : parsedSummary;
         let aiActionHtml = '';
         
-        // BUG FIX: Removed 'isBulkMode' reference that was crashing the render
         if (t.suggestedAction && t.suggestedAction !== "Waiting for AI sync.") {
             const btnText = isDismissed ? 'Restore' : 'Acknowledge';
-            const actionBtn = (isAnomaly && !isOverloaded) ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}', '${safeAnomalyType}')">${btnText}</button>` : '';
+            const actionBtn = (isAnomaly && !isOverloaded && !isBulkMode) ? `<button class="btn-outline" style="height:26px; padding:0 10px; font-size:0.7rem;" onclick="toggleAcknowledge('${t.id}', '${safeAnomalyType}')">${btnText}</button>` : '';
             aiActionHtml = `<div class="ai-action-box"><span><svg class="inline-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path><line x1="9" y1="21" x2="15" y2="21"></line></svg> <strong>Action:</strong> ${t.suggestedAction}</span> ${actionBtn}</div>`;
         }
 
         const copySvg = `<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         let deptPill = `<span style="display:inline-block; margin-top:6px; padding:3px 8px; border-radius:6px; font-size:0.7rem; font-weight:600; background:var(--glass-highlight); border:1px solid var(--glass-border); color:var(--text-muted); letter-spacing:0.3px;">${t.department || 'Unknown'}</span>`;
 
+        let bulkCell = '';
+        if (isBulkMode) {
+            if (isAnomaly && !isDismissed && !isOverloaded) {
+                const key = t.id + "::" + safeAnomalyType;
+                const isChecked = selectedTickets.has(key) ? 'checked' : '';
+                bulkCell = `<td style="text-align:center; vertical-align:middle;"><input type="checkbox" class="cb-custom bulk-cb" value="${key}" onclick="handleBulkCheck('${t.id}', '${safeAnomalyType}', this)" ${isChecked}></td>`;
+            } else {
+                bulkCell = `<td></td>`;
+            }
+        }
+
         const tr = document.createElement('tr');
         tr.className = "rendered-row";
-        tr.innerHTML = `
+        tr.innerHTML = bulkCell + `
           <td>
             <strong class="copyable" onclick="copyToCB('${safeTicketNum}')" data-tooltip="Copy ID" style="color: var(--text-main); font-size: 1rem;">#${t.ticketNumber}${copySvg}</strong><br>
             ${displayDateHtml}<br>${agingHtml}
@@ -545,6 +910,13 @@
       const sessionToken = localStorage.getItem('mm_ticket_session');
       const idStr = String(ticketId) + "::" + anomalyType;
       
+      const tObj = rawTicketsData.find(t => String(t.id) === String(ticketId));
+      if (tObj && tObj.ticketNumber) {
+          notifications = notifications.filter(n => String(n.ticket) !== String(tObj.ticketNumber));
+          localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+          updateNotificationUI();
+      }
+
       const idx = acknowledgedTickets.indexOf(idStr);
       if (idx > -1) acknowledgedTickets.splice(idx, 1);
       else acknowledgedTickets.push(idStr);
@@ -566,13 +938,127 @@
       localStorage.setItem('mm_theme', nt);
     }
 
-    function showToast(msg) {
+    function showToast(msg, isAlert = false) {
        const tc = document.getElementById('toastContainer');
+       
+       let clearBtn = document.getElementById('toastClearAllBtn');
+       if (!clearBtn) {
+         clearBtn = document.createElement('button');
+         clearBtn.id = 'toastClearAllBtn';
+         clearBtn.className = 'toast-clear-all';
+         clearBtn.innerHTML = `<svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Clear All`;
+         clearBtn.onclick = () => {
+           document.querySelectorAll('.toast').forEach(t => {
+              t.style.opacity = '0';
+              t.style.transform = 'translateX(50px) scale(0.9)';
+              setTimeout(() => t.remove(), 300);
+           });
+           setTimeout(checkToasts, 350);
+         };
+         tc.prepend(clearBtn); 
+       }
+
        const t = document.createElement('div');
-       t.className = 'toast';
-       t.innerHTML = `<svg class="svg-icon" style="color:var(--accent-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> <div>${msg}</div>`;
-       tc.appendChild(t);
-       setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+       t.className = isAlert ? 'toast alert-toast' : 'toast'; 
+       
+       const icon = isAlert
+         ? `<svg class="svg-icon" style="color:var(--danger-color); flex-shrink: 0;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`
+         : `<svg class="svg-icon" style="color:var(--accent-primary); flex-shrink: 0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+
+       t.innerHTML = `
+         ${icon} 
+         <div style="flex-grow: 1;">${msg}</div>
+         <div class="toast-close" onclick="this.parentElement.style.opacity='0'; this.parentElement.style.transform='translateX(50px) scale(0.9)'; setTimeout(() => { this.parentElement.remove(); checkToasts(); }, 300);">
+           <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+         </div>
+       `;
+       
+       tc.insertBefore(t, clearBtn.nextSibling);
+       checkToasts();
+
+       if (!isAlert) {
+         setTimeout(() => { 
+           t.style.opacity = '0'; 
+           t.style.transform = 'translateX(50px) scale(0.9)'; 
+           setTimeout(() => { t.remove(); checkToasts(); }, 300); 
+         }, 3000);
+       }
+    }
+
+    function checkToasts() {
+      const tc = document.getElementById('toastContainer');
+      const clearBtn = document.getElementById('toastClearAllBtn');
+      if (tc && clearBtn) {
+        const alertCount = tc.querySelectorAll('.alert-toast').length;
+        if (alertCount > 1) clearBtn.classList.add('visible'); 
+        else clearBtn.classList.remove('visible');
+      }
+    }
+
+    // --- BULK ACKNOWLEDGEMENT FUNCTIONS ---
+    function toggleBulkMode() {
+        isBulkMode = !isBulkMode;
+        selectedTickets.clear();
+        const bar = document.getElementById('bulkActionBar');
+        if (isBulkMode) bar.classList.add('visible');
+        else bar.classList.remove('visible');
+        document.getElementById('bulkCount').textContent = "0";
+        applyFilters(); 
+    }
+    
+    function handleBulkCheck(ticketId, anomalyType, cb) {
+        const key = ticketId + "::" + anomalyType;
+        if (cb.checked) selectedTickets.add(key);
+        else selectedTickets.delete(key);
+        document.getElementById('bulkCount').textContent = selectedTickets.size;
+    }
+    
+    function toggleAllBulk(cb) {
+        const checkboxes = document.querySelectorAll('.bulk-cb');
+        selectedTickets.clear();
+        checkboxes.forEach(c => {
+            c.checked = cb.checked;
+            if (cb.checked) selectedTickets.add(c.value);
+        });
+        document.getElementById('bulkCount').textContent = selectedTickets.size;
+    }
+    
+    function executeBulkAcknowledge() {
+        if (selectedTickets.size === 0) return showToast("No tickets selected to acknowledge.");
+        
+        const sessionToken = localStorage.getItem('mm_ticket_session');
+        const tokensArray = Array.from(selectedTickets);
+        
+        tokensArray.forEach(idStr => {
+            if (!acknowledgedTickets.includes(idStr)) acknowledgedTickets.push(idStr);
+            const tId = idStr.split("::")[0];
+            const tObj = rawTicketsData.find(t => String(t.id) === String(tId));
+            if (tObj && tObj.ticketNumber) {
+                notifications = notifications.filter(n => String(n.ticket) !== String(tObj.ticketNumber));
+            }
+        });
+        
+        localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+        updateNotificationUI();
+        
+        toggleBulkMode();
+        showToast(`Processing ${tokensArray.length} acknowledgements...`);
+        
+        fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: "bulkAcknowledge", sessionToken: sessionToken, tokens: tokensArray }),
+            redirect: 'follow'
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                acknowledgedTickets = res.ackList || [];
+                showToast("Successfully acknowledged selected tickets.");
+            } else {
+                showToast("Failed to save bulk acknowledgement remotely.");
+            }
+        }).catch(err => showToast("Network error."));
     }
   </script>
 </body>
