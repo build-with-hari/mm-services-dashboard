@@ -869,6 +869,10 @@
         }
       }
       
+      // NEW: Clear the Search Box text when the floating button is clicked
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.value = '';
+      
       // Reset the Alt+A cross-department view back to normal
       showAllDepts = false;
       localStorage.setItem('mm_show_all_depts', false);
