@@ -1382,8 +1382,8 @@
       });
 
       const fab = document.getElementById('floatingClearBtn');
-      // Show Clear Filters if ANY dropdown is changed OR if Alt+A cross-dept view is active
-      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts) {
+      // Show Clear Filters if ANY dropdown is changed, Alt+A is active, OR there is a search query
+      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts || query.length > 0) {
           fab.classList.add('visible');
       } else {
           fab.classList.remove('visible');
