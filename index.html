@@ -635,6 +635,10 @@
       } else {
         badge.classList.remove('active');
         body.innerHTML = '<div class="notif-empty">No recent alerts.</div>';
+        
+        // NEW: Force the bell to immediately stop shaking when the list hits zero!
+        const bellBtn = document.querySelector('#notifWrapper button');
+        if (bellBtn) bellBtn.classList.remove('bell-ringing');
       }
     }
 
@@ -1135,20 +1139,35 @@
     // PERSISTENT ACKNOWLEDGEMENT FUNCTION
     function toggleAcknowledge(ticketId, anomalyType) {
       const sessionToken = localStorage.getItem('mm_ticket_session');
-      const idStr = String(ticketId) + "::" + anomalyType;
+      const idStr = String(ticketId).trim() + "::" + anomalyType;
       
-      // NEW: Clear this ticket out of the Notification Bell automatically
-      const tObj = rawTicketsData.find(t => String(t.id) === String(ticketId));
-      if (tObj && tObj.ticketNumber) {
-          notifications = notifications.filter(n => String(n.ticket) !== String(tObj.ticketNumber));
-          localStorage.setItem('mm_notifications', JSON.stringify(notifications));
-          updateNotificationUI();
-      }
-
-      // Update UI Instantly
+      // Use strict .trim() to ensure invisible spaces don't break the match
+      const tObj = rawTicketsData.find(t => String(t.id).trim() === String(ticketId).trim());
       const idx = acknowledgedTickets.indexOf(idStr);
-      if (idx > -1) acknowledgedTickets.splice(idx, 1);
-      else acknowledgedTickets.push(idStr);
+      
+      if (idx > -1) {
+          // 1. RESTORE TICKET
+          acknowledgedTickets.splice(idx, 1);
+          
+          // Clear the memory block so it can trigger a new alert if it is still broken
+          if (tObj && tObj.ticketNumber) {
+              const alertKey = String(tObj.ticketNumber).trim() + "-" + anomalyType;
+              delete notifiedAnomalies[alertKey];
+              localStorage.setItem('mm_notified_anomalies', JSON.stringify(notifiedAnomalies));
+          }
+      } else {
+          // 2. ACKNOWLEDGE TICKET
+          acknowledgedTickets.push(idStr);
+          
+          // Instantly clear it from the Notification Bell
+          if (tObj && tObj.ticketNumber) {
+              const tNum = String(tObj.ticketNumber).trim();
+              notifications = notifications.filter(n => String(n.ticket).trim() !== tNum);
+              localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+              updateNotificationUI();
+          }
+      }
+      
       applyFilters();
 
       // Dispatch to Backend to save globally
@@ -1715,9 +1734,10 @@
         tokensArray.forEach(idStr => {
             if (!acknowledgedTickets.includes(idStr)) acknowledgedTickets.push(idStr);
             const tId = idStr.split("::")[0];
-            const tObj = rawTicketsData.find(t => String(t.id) === String(tId));
+            const tObj = rawTicketsData.find(t => String(t.id).trim() === String(tId).trim());
             if (tObj && tObj.ticketNumber) {
-                notifications = notifications.filter(n => String(n.ticket) !== String(tObj.ticketNumber));
+                const tNum = String(tObj.ticketNumber).trim();
+                notifications = notifications.filter(n => String(n.ticket).trim() !== tNum);
             }
         });
         
