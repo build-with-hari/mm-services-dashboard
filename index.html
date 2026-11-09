@@ -1871,14 +1871,14 @@
         if (currentFilteredData.length === 0) return;
         if (currentFilteredData.length > 35) return showToast("Cannot open more than 35 tabs at once.");
         
-        showToast(`Opening ${currentFilteredData.length} tabs... Please allow pop-ups if prompted!`);
+        showToast(`Opening ${currentFilteredData.length} tabs in order... Please allow pop-ups!`);
         
-        currentFilteredData.forEach(t => {
+        currentFilteredData.forEach((t, index) => {
             if (t.url) {
-                // To avoid triggering browser aggressive pop-up blockers, we stagger the opens slightly
+                // Multiply the delay by the index so they open sequentially in perfect order
                 setTimeout(() => {
                     window.open(t.url, '_blank');
-                }, 100);
+                }, index * 150); 
             }
         });
     }
