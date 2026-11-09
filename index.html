@@ -301,7 +301,7 @@
   <div id="floatingActionContainer" style="position: fixed; bottom: 30px; left: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 10000; transition: opacity 0.3s ease, transform 0.3s ease; opacity: 0; pointer-events: none; transform: translateY(20px);">
     <div id="openAllBtn" onclick="openAllFilteredTabs()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: var(--accent-primary); padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(15px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: all 0.3s ease; user-select: none;" data-tooltip="Open all below in new tabs">
       <svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-      Open All Tabs (<span id="openAllCount">0</span>)
+      <span>Open All Tabs (<span id="openAllCount">0</span>)</span>
     </div>
     
     <div id="floatingClearBtn" style="background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--danger-color); padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(15px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: all 0.3s ease; user-select: none;" data-tooltip="Clear All Selected Filters">
@@ -1501,10 +1501,10 @@
       
       countLabel.textContent = filtered.length;
       
-      if (filtered.length > 20) {
+      if (filtered.length > 35) {
           openAllBtn.style.opacity = '0.5';
           openAllBtn.style.pointerEvents = 'none';
-          openAllBtn.setAttribute('data-tooltip', 'Filter down to < 20 tickets to open');
+          openAllBtn.setAttribute('data-tooltip', 'Filter down to < 35 tickets to open');
       } else {
           openAllBtn.style.opacity = '1';
           openAllBtn.style.pointerEvents = 'auto';
@@ -1869,7 +1869,7 @@
 
     function openAllFilteredTabs() {
         if (currentFilteredData.length === 0) return;
-        if (currentFilteredData.length > 20) return showToast("Cannot open more than 20 tabs at once.");
+        if (currentFilteredData.length > 35) return showToast("Cannot open more than 35 tabs at once.");
         
         showToast(`Opening ${currentFilteredData.length} tabs... Please allow pop-ups if prompted!`);
         
