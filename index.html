@@ -1398,35 +1398,6 @@
           else div.style.display = 'none';
       });
 
-      const fabContainer = document.getElementById('floatingActionContainer');
-      const openAllBtn = document.getElementById('openAllBtn');
-      const countLabel = document.getElementById('openAllCount');
-      
-      // Update the Ticket Count inside the Open All button
-      countLabel.textContent = filtered.length;
-      
-      // If there are more than 20 tickets, disable the Open All button to prevent browser crashes
-      if (filtered.length > 20) {
-          openAllBtn.style.opacity = '0.5';
-          openAllBtn.style.pointerEvents = 'none';
-          openAllBtn.setAttribute('data-tooltip', 'Filter down to < 20 tickets to open');
-      } else {
-          openAllBtn.style.opacity = '1';
-          openAllBtn.style.pointerEvents = 'auto';
-          openAllBtn.setAttribute('data-tooltip', 'Open all below in new tabs');
-      }
-
-      // Show the action container if ANY filter is active
-      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts || query.length > 0) {
-          fabContainer.style.opacity = '1';
-          fabContainer.style.pointerEvents = 'auto';
-          fabContainer.style.transform = 'translateY(0)';
-      } else {
-          fabContainer.style.opacity = '0';
-          fabContainer.style.pointerEvents = 'none';
-          fabContainer.style.transform = 'translateY(20px)';
-      }
-
       updateKPIs(baseFiltered);
 
       let filtered = baseFiltered.filter(t => {
@@ -1443,6 +1414,8 @@
         return mKpi;
       });
 
+      currentFilteredData = filtered;
+
       // SORT ENGINE 
       filtered.sort((a, b) => {
         if (sortVal === 'date-new') return new Date(b.createdDate || 0) - new Date(a.createdDate || 0);
@@ -1456,6 +1429,34 @@
       });
 
       currentFilteredData = filtered;
+
+      // ✅ MOVED HERE: Now the 'filtered' variable actually exists!
+      const fabContainer = document.getElementById('floatingActionContainer');
+      const openAllBtn = document.getElementById('openAllBtn');
+      const countLabel = document.getElementById('openAllCount');
+      
+      countLabel.textContent = filtered.length;
+      
+      if (filtered.length > 20) {
+          openAllBtn.style.opacity = '0.5';
+          openAllBtn.style.pointerEvents = 'none';
+          openAllBtn.setAttribute('data-tooltip', 'Filter down to < 20 tickets to open');
+      } else {
+          openAllBtn.style.opacity = '1';
+          openAllBtn.style.pointerEvents = 'auto';
+          openAllBtn.setAttribute('data-tooltip', 'Open all below in new tabs');
+      }
+
+      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts || query.length > 0) {
+          fabContainer.style.opacity = '1';
+          fabContainer.style.pointerEvents = 'auto';
+          fabContainer.style.transform = 'translateY(0)';
+      } else {
+          fabContainer.style.opacity = '0';
+          fabContainer.style.pointerEvents = 'none';
+          fabContainer.style.transform = 'translateY(20px)';
+      }
+      // ============================================
       
       // SHOW/HIDE BULK BUTTON ONLY ON ANOMALY KPI TAB
       const bulkModeBtn = document.getElementById('bulkModeToggleBtn');
