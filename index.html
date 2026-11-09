@@ -823,6 +823,39 @@
       }
       
       setupDraggableFab();
+      
+      // NEW: Listen for background updates from Tampermonkey!
+      try {
+          const bc = new BroadcastChannel('mm_ticket_sync');
+          bc.onmessage = function(ev) {
+              if (ev.data && ev.data.type === 'ACKNOWLEDGE') {
+                  const tId = String(ev.data.ticketId).trim();
+                  const aType = ev.data.anomalyType;
+                  
+                  // 1. Update the Memory Array
+                  if (rawTicketsData && rawTicketsData.length > 0) {
+                      const tObj = rawTicketsData.find(t => String(t.id).trim() === tId || String(t.ticketNumber).trim() === tId);
+                      if (tObj) {
+                          const idStr = String(tObj.id).trim() + "::" + aType;
+                          if (!acknowledgedTickets.includes(idStr)) acknowledgedTickets.push(idStr);
+                          
+                          // 2. Clear from Notification Bell immediately
+                          const tNum = String(tObj.ticketNumber).trim();
+                          notifications = notifications.filter(n => String(n.ticket).trim() !== tNum);
+                          delete notifiedAnomalies[tNum + "-" + aType];
+                          
+                          localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+                          localStorage.setItem('mm_notified_anomalies', JSON.stringify(notifiedAnomalies));
+                          updateNotificationUI();
+                          
+                          // 3. Re-render the Table instantly!
+                          applyFilters();
+                      }
+                  }
+              }
+          };
+      } catch(e) {}
+      
     });
 
     // --- DRAGGABLE FLOATING CONTAINER LOGIC ---
