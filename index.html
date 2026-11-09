@@ -444,9 +444,9 @@
               <div data-value="SLA Breached">SLA Breached</div>
               <div data-value="Customer Waiting">Customer Waiting</div>
               <div data-value="Stale Ticket">Stale Ticket</div>
-              <div data-value="ETA Missing">ETA Missing</div>
-              <div data-value="ETA Breached">ETA Breached</div>
-              <div data-value="ETA Today">ETA Due Today</div>
+              <div data-value="eta missing">ETA Missing</div>
+              <div data-value="eta breached">ETA Breached</div>
+              <div data-value="eta today">ETA Due Today</div>
               <div data-value="Awaiting Fix">Awaiting Fix (Acknowledged)</div>
             </div>
           </div>
@@ -1374,6 +1374,9 @@
                     if (safeAnomaly.includes('sla breached')) validAnomalies.add('SLA Breached');
                     if (safeAnomaly.includes('customer waiting')) validAnomalies.add('Customer Waiting');
                     if (safeAnomaly.includes('stale ticket')) validAnomalies.add('Stale Ticket');
+                    if (safeAnomaly.includes('eta missing')) validAnomalies.add('eta missing');
+                    if (safeAnomaly.includes('eta breached')) validAnomalies.add('eta breached');
+                    if (safeAnomaly.includes('eta today')) validAnomalies.add('eta today');
                 }
             }
         }
