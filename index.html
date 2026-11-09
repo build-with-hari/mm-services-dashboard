@@ -1127,6 +1127,34 @@
           // LOAD ACKNOWLEDGED LIST FROM BACKEND
           acknowledgedTickets = res.ackList || [];
           
+          // --- NEW: SYNC NOTIFICATION BELL WITH REMOTE ACKNOWLEDGEMENTS ---
+          let notifsChanged = false;
+          rawTicketsData.forEach(t => {
+              const isAnomalyRaw = (t.hasAnomaly === true || t.hasAnomaly === "true");
+              const isDismissed = acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType);
+              const isOverloaded = (t.anomalyType === "API Overloaded" || (t.aiSummary || "").includes("free-tier"));
+              
+              // If the ticket is no longer an active anomaly (e.g. Tampermonkey acknowledged it), wipe it from the bell
+              if (!isAnomalyRaw || isDismissed || isOverloaded) {
+                  const tNum = String(t.ticketNumber).trim();
+                  const initLen = notifications.length;
+                  notifications = notifications.filter(n => String(n.ticket).trim() !== tNum);
+                  
+                  if (notifications.length !== initLen) {
+                      notifsChanged = true;
+                      delete notifiedAnomalies[tNum + "-" + t.anomalyType];
+                  }
+              }
+          });
+          
+          // If we found ghost notifications and deleted them, save the clean slate and update the UI
+          if (notifsChanged) {
+              localStorage.setItem('mm_notifications', JSON.stringify(notifications));
+              localStorage.setItem('mm_notified_anomalies', JSON.stringify(notifiedAnomalies));
+              updateNotificationUI();
+          }
+          // ------------------------------------------------------------------
+
           document.getElementById('kpiLastSync').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ` + (res.data.lastRefreshed || "--");
           
           // Let applyFilters handle the KPI math safely to prevent animation overlap glitches
