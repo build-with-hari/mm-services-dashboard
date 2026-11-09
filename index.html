@@ -297,10 +297,17 @@
     <button class="btn-outline" onclick="toggleBulkMode()">Cancel</button>
   </div>
 
-  <!-- FLOATING CLEAR BUTTON (Draggable) -->
-  <div id="floatingClearBtn" class="fab-clear" data-tooltip="Clear All Selected Filters">
-    <svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-    Clear Filters
+  <!-- FLOATING ACTION BUTTONS (Draggable container) -->
+  <div id="floatingActionContainer" style="position: fixed; bottom: 30px; left: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 10000; transition: opacity 0.3s ease, transform 0.3s ease; opacity: 0; pointer-events: none; transform: translateY(20px);">
+    <div id="openAllBtn" onclick="openAllFilteredTabs()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: var(--accent-primary); padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(15px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: all 0.3s ease; user-select: none;" data-tooltip="Open all below in new tabs">
+      <svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      Open All Tabs (<span id="openAllCount">0</span>)
+    </div>
+    
+    <div id="floatingClearBtn" style="background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: var(--danger-color); padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(15px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: all 0.3s ease; user-select: none;" data-tooltip="Clear All Selected Filters">
+      <svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+      Clear Filters
+    </div>
   </div>
 
   <div class="app-container">
@@ -437,6 +444,9 @@
               <div data-value="SLA Breached">SLA Breached</div>
               <div data-value="Customer Waiting">Customer Waiting</div>
               <div data-value="Stale Ticket">Stale Ticket</div>
+              <div data-value="ETA Missing">ETA Missing</div>
+              <div data-value="ETA Breached">ETA Breached</div>
+              <div data-value="ETA Today">ETA Due Today</div>
               <div data-value="Awaiting Fix">Awaiting Fix (Acknowledged)</div>
             </div>
           </div>
@@ -815,39 +825,42 @@
       setupDraggableFab();
     });
 
-    // --- DRAGGABLE FLOATING CLEAR BUTTON LOGIC ---
+    // --- DRAGGABLE FLOATING CONTAINER LOGIC ---
     function setupDraggableFab() {
-      const fab = document.getElementById('floatingClearBtn');
+      const fabContainer = document.getElementById('floatingActionContainer');
+      const clearBtn = document.getElementById('floatingClearBtn');
       let isDragging = false;
       let dragStartX, dragStartY, initialLeft, initialTop;
 
-      fab.addEventListener('mousedown', (e) => {
+      fabContainer.addEventListener('mousedown', (e) => {
         isDragging = true;
         dragStartX = e.clientX;
         dragStartY = e.clientY;
-        const rect = fab.getBoundingClientRect();
+        const rect = fabContainer.getBoundingClientRect();
         initialLeft = rect.left;
         initialTop = rect.top;
-        fab.style.transition = 'none'; // Disable smooth transition during physical drag1
+        fabContainer.style.transition = 'none'; 
       });
 
       document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         const dx = e.clientX - dragStartX;
         const dy = e.clientY - dragStartY;
-        fab.style.left = `${initialLeft + dx}px`;
-        fab.style.top = `${initialTop + dy}px`;
-        fab.style.bottom = 'auto'; // Free it from bottom anchor
+        fabContainer.style.left = `${initialLeft + dx}px`;
+        fabContainer.style.top = `${initialTop + dy}px`;
+        fabContainer.style.bottom = 'auto'; 
       });
 
       document.addEventListener('mouseup', (e) => {
         if (isDragging) {
           isDragging = false;
-          fab.style.transition = 'opacity 0.3s ease, transform 0.3s ease, background 0.3s ease';
+          fabContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
           
-          // If the mouse barely moved, register it as a Click
+          // If the mouse barely moved and they specifically clicked the clear button
           if (Math.abs(e.clientX - dragStartX) < 5 && Math.abs(e.clientY - dragStartY) < 5) {
-            clearAllFilters();
+              if (e.target.closest('#floatingClearBtn')) {
+                  clearAllFilters();
+              }
           }
         }
       });
@@ -1385,12 +1398,33 @@
           else div.style.display = 'none';
       });
 
-      const fab = document.getElementById('floatingClearBtn');
-      // Show Clear Filters if ANY dropdown is changed, Alt+A is active, OR there is a search query
-      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts || query.length > 0) {
-          fab.classList.add('visible');
+      const fabContainer = document.getElementById('floatingActionContainer');
+      const openAllBtn = document.getElementById('openAllBtn');
+      const countLabel = document.getElementById('openAllCount');
+      
+      // Update the Ticket Count inside the Open All button
+      countLabel.textContent = filtered.length;
+      
+      // If there are more than 20 tickets, disable the Open All button to prevent browser crashes
+      if (filtered.length > 20) {
+          openAllBtn.style.opacity = '0.5';
+          openAllBtn.style.pointerEvents = 'none';
+          openAllBtn.setAttribute('data-tooltip', 'Filter down to < 20 tickets to open');
       } else {
-          fab.classList.remove('visible');
+          openAllBtn.style.opacity = '1';
+          openAllBtn.style.pointerEvents = 'auto';
+          openAllBtn.setAttribute('data-tooltip', 'Open all below in new tabs');
+      }
+
+      // Show the action container if ANY filter is active
+      if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts || query.length > 0) {
+          fabContainer.style.opacity = '1';
+          fabContainer.style.pointerEvents = 'auto';
+          fabContainer.style.transform = 'translateY(0)';
+      } else {
+          fabContainer.style.opacity = '0';
+          fabContainer.style.pointerEvents = 'none';
+          fabContainer.style.transform = 'translateY(20px)';
       }
 
       updateKPIs(baseFiltered);
@@ -1766,6 +1800,22 @@
                 showToast("Failed to save bulk acknowledgement remotely.");
             }
         }).catch(err => showToast("Network error."));
+    }
+
+    function openAllFilteredTabs() {
+        if (currentFilteredData.length === 0) return;
+        if (currentFilteredData.length > 20) return showToast("Cannot open more than 20 tabs at once.");
+        
+        showToast(`Opening ${currentFilteredData.length} tabs... Please allow pop-ups if prompted!`);
+        
+        currentFilteredData.forEach(t => {
+            if (t.url) {
+                // To avoid triggering browser aggressive pop-up blockers, we stagger the opens slightly
+                setTimeout(() => {
+                    window.open(t.url, '_blank');
+                }, 100);
+            }
+        });
     }
   </script>
 </body>
