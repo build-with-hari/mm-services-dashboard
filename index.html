@@ -488,9 +488,8 @@
             </div>
           </div>
 
-          <button id="bulkModeToggleBtn" class="btn-outline" onclick="toggleBulkMode()" style="display:none; height: 42px; padding: 0 1.25rem;">
+          <button id="bulkModeToggleBtn" class="btn-outline btn-icon" onclick="toggleBulkMode()" style="display:none;" data-tooltip="Select Multiple">
             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-            Select Multiple
           </button>
         </div>
 
@@ -1416,19 +1415,25 @@
         else if (priority === 'Medium') mPri = safePri === 'medium';
         else if (priority === 'Low') mPri = ['low', 'normal'].includes(safePri);
 
+        // Pre-calculate the KPI check so the dropdowns know which tab you are on
+        let mKpi = true;
+        if (currentKpiFilter === 'ANOMALIES') mKpi = isActivelyFlagged;
+        else if (currentKpiFilter === 'HEALTHY') mKpi = !isActivelyFlagged;
+        else if (currentKpiFilter !== 'ALL') mKpi = (safeStatus === currentKpiFilter.toLowerCase());
+
         if (mQuery) {
-            if (mAnomaly && mPri) {
+            if (mKpi && mAnomaly && mPri) {
                 validOwners.add(t.owner);
                 if (!mainAgents.includes(t.owner)) validOwners.add('Others');
             }
-            if (mOwner && mAnomaly) {
+            if (mKpi && mOwner && mAnomaly) {
                 if (safePri === 'critical') validPriorities.add('Critical');
                 else if (safePri === 'urgent') validPriorities.add('Urgent');
                 else if (safePri === 'high') validPriorities.add('High');
                 else if (safePri === 'medium') validPriorities.add('Medium');
                 else if (safePri === 'low' || safePri === 'normal') validPriorities.add('Low');
             }
-            if (mOwner && mPri) {
+            if (mKpi && mOwner && mPri) {
                 if (!isActivelyFlagged) validAnomalies.add('Healthy');
                 if (isDismissed) validAnomalies.add('Awaiting Fix');
                 if (isActivelyFlagged) {
