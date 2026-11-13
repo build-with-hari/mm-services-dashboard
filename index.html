@@ -442,6 +442,7 @@
               <div data-value="ALL">All Health Statuses</div>
               <div data-value="Healthy">Healthy Only</div>
               <div data-value="SLA Breached">SLA Breached</div>
+              <div data-value="at risk">At Risk</div>
               <div data-value="Customer Waiting">Customer Waiting</div>
               <div data-value="Stale Ticket">Stale Ticket</div>
               <div data-value="eta missing">ETA Missing</div>
@@ -1438,6 +1439,7 @@
                 if (isDismissed) validAnomalies.add('Awaiting Fix');
                 if (isActivelyFlagged) {
                     if (safeAnomaly.includes('sla breached')) validAnomalies.add('SLA Breached');
+                    if (safeAnomaly.includes('at risk')) validAnomalies.add('at risk');
                     if (safeAnomaly.includes('customer waiting')) validAnomalies.add('Customer Waiting');
                     if (safeAnomaly.includes('stale ticket')) validAnomalies.add('Stale Ticket');
                     if (safeAnomaly.includes('eta missing')) validAnomalies.add('eta missing');
