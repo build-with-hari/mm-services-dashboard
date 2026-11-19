@@ -293,8 +293,18 @@
   <!-- FLOATING BULK ACTION BAR -->
   <div id="bulkActionBar" class="fab-bulk">
     <span><span id="bulkCount" style="color: var(--accent-primary);">0</span> Selected</span>
-    <button class="btn-primary" onclick="executeBulkAcknowledge()">Acknowledge Selected</button>
-    <button class="btn-outline" onclick="toggleBulkMode()">Cancel</button>
+    
+    <button class="btn-primary" id="bulkAckBtn" onclick="executeBulkAcknowledge()">Acknowledge</button>
+    
+    <button class="btn-outline btn-icon" onclick="copyBulkInfo()" data-tooltip="Copy Info to Excel">
+      <svg class="svg-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+    </button>
+    
+    <button class="btn-outline btn-icon" onclick="openBulkTabs()" data-tooltip="Open in New Tabs">
+      <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+    </button>
+    
+    <button class="btn-outline" onclick="toggleBulkMode()" style="color: var(--danger-color); border-color: rgba(248, 113, 113, 0.3);">Cancel</button>
   </div>
 
   <!-- FLOATING ACTION BUTTONS (Draggable container) -->
@@ -1529,14 +1539,13 @@
       }
       // ============================================
       
-      // SHOW/HIDE BULK BUTTON ONLY ON ANOMALY KPI TAB
+      // SHOW/HIDE BULK BUTTON ON ALL TABS
       const bulkModeBtn = document.getElementById('bulkModeToggleBtn');
       if (bulkModeBtn) {
-          if (currentKpiFilter === 'ANOMALIES' && filtered.length > 0) {
+          if (filtered.length > 0) {
               bulkModeBtn.style.display = 'inline-flex';
           } else {
               bulkModeBtn.style.display = 'none';
-              // Delay closure by 0ms to let the current filter render finish
               if (isBulkMode) setTimeout(() => toggleBulkMode(), 0); 
           }
       }
@@ -1660,13 +1669,8 @@
 
         let bulkCell = '';
         if (isBulkMode) {
-            if (isAnomaly && !isDismissed && !isOverloaded) {
-                const key = t.id + "::" + safeAnomalyType;
-                const isChecked = selectedTickets.has(key) ? 'checked' : '';
-                bulkCell = `<td style="text-align:center; vertical-align:middle;"><input type="checkbox" class="cb-custom bulk-cb" value="${key}" onclick="handleBulkCheck('${t.id}', '${safeAnomalyType}', this)" ${isChecked}></td>`;
-            } else {
-                bulkCell = `<td></td>`;
-            }
+            const isChecked = selectedTickets.has(String(t.id)) ? 'checked' : '';
+            bulkCell = `<td style="text-align:center; vertical-align:middle;"><input type="checkbox" class="cb-custom bulk-cb" value="${t.id}" onclick="handleBulkCheck('${t.id}', this)" ${isChecked}></td>`;
         }
 
         const tr = document.createElement('tr');
@@ -1817,11 +1821,24 @@
         applyFilters(); // Re-render table headers and rows
     }
     
-    function handleBulkCheck(ticketId, anomalyType, cb) {
-        const key = ticketId + "::" + anomalyType;
+    function updateBulkButtons() {
+        // Only show "Acknowledge" if an actual un-acknowledged anomaly is selected
+        let hasAnomaly = false;
+        selectedTickets.forEach(tId => {
+            const t = rawTicketsData.find(x => String(x.id) === String(tId));
+            if (t && (t.hasAnomaly === true || t.hasAnomaly === "true") && t.anomalyType !== "API Overloaded") {
+                if (!acknowledgedTickets.includes(String(t.id) + "::" + t.anomalyType)) hasAnomaly = true;
+            }
+        });
+        document.getElementById('bulkAckBtn').style.display = hasAnomaly ? 'inline-flex' : 'none';
+    }
+
+    function handleBulkCheck(ticketId, cb) {
+        const key = String(ticketId);
         if (cb.checked) selectedTickets.add(key);
         else selectedTickets.delete(key);
         document.getElementById('bulkCount').textContent = selectedTickets.size;
+        updateBulkButtons();
     }
     
     function toggleAllBulk(cb) {
@@ -1832,29 +1849,41 @@
             if (cb.checked) selectedTickets.add(c.value);
         });
         document.getElementById('bulkCount').textContent = selectedTickets.size;
+        updateBulkButtons();
     }
     
     function executeBulkAcknowledge() {
-        if (selectedTickets.size === 0) return showToast("No tickets selected to acknowledge.");
+        if (selectedTickets.size === 0) return showToast("No tickets selected.");
         
         const sessionToken = localStorage.getItem('mm_ticket_session');
-        const tokensArray = Array.from(selectedTickets);
+        const tokensArray = [];
+        
+        // Convert selected IDs into valid Anomaly Tokens for the backend
+        selectedTickets.forEach(tId => {
+            const tObj = rawTicketsData.find(t => String(t.id).trim() === String(tId).trim());
+            if (tObj && (tObj.hasAnomaly === true || tObj.hasAnomaly === "true") && tObj.anomalyType !== "API Overloaded") {
+                const idStr = String(tObj.id).trim() + "::" + tObj.anomalyType;
+                if (!acknowledgedTickets.includes(idStr)) {
+                    tokensArray.push(idStr);
+                }
+            }
+        });
+
+        if (tokensArray.length === 0) return showToast("None of the selected tickets require acknowledgement.");
         
         // Optimistic UI updates
         tokensArray.forEach(idStr => {
-            if (!acknowledgedTickets.includes(idStr)) acknowledgedTickets.push(idStr);
+            acknowledgedTickets.push(idStr);
             const tId = idStr.split("::")[0];
             const tObj = rawTicketsData.find(t => String(t.id).trim() === String(tId).trim());
             if (tObj && tObj.ticketNumber) {
-                const tNum = String(tObj.ticketNumber).trim();
-                notifications = notifications.filter(n => String(n.ticket).trim() !== tNum);
+                notifications = notifications.filter(n => String(n.ticket).trim() !== String(tObj.ticketNumber).trim());
             }
         });
         
         localStorage.setItem('mm_notifications', JSON.stringify(notifications));
         updateNotificationUI();
         
-        // Hide bulk mode and instantly update visuals
         toggleBulkMode();
         showToast(`Processing ${tokensArray.length} acknowledgements...`);
         
@@ -1868,10 +1897,82 @@
             if (res.success) {
                 acknowledgedTickets = res.ackList || [];
                 showToast("Successfully acknowledged selected tickets.");
-            } else {
-                showToast("Failed to save bulk acknowledgement remotely.");
-            }
+            } else showToast("Failed to save bulk acknowledgement remotely.");
         }).catch(err => showToast("Network error."));
+    }
+
+    // --- NEW: BULK OPEN TABS ---
+    function openBulkTabs() {
+        if (selectedTickets.size === 0) return showToast("No tickets selected.");
+        if (selectedTickets.size > 35) return showToast("Cannot open more than 35 tabs at once.");
+        
+        showToast(`Opening ${selectedTickets.size} tabs sequentially...`);
+        
+        let delayIndex = 0;
+        currentFilteredData.forEach(t => {
+            if (selectedTickets.has(String(t.id)) && t.url) {
+                setTimeout(() => window.open(t.url, '_blank'), delayIndex * 150); 
+                delayIndex++;
+            }
+        });
+        toggleBulkMode();
+    }
+
+    // --- NEW: BULK COPY INFO TO EXCEL ---
+    function copyBulkInfo() {
+        if (selectedTickets.size === 0) return showToast("No tickets selected.");
+        
+        let htmlTable = `<table style="border-collapse: collapse; font-family: sans-serif;">
+            <thead>
+                <tr style="background-color: #f1f5f9; text-align: left;">
+                    <th style="padding: 8px; border: 1px solid #cbd5e1;">Ticket ID</th>
+                    <th style="padding: 8px; border: 1px solid #cbd5e1;">Priority</th>
+                    <th style="padding: 8px; border: 1px solid #cbd5e1;">Owner</th>
+                    <th style="padding: 8px; border: 1px solid #cbd5e1;">Status</th>
+                    <th style="padding: 8px; border: 1px solid #cbd5e1;">Subject</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        let plainText = "Ticket ID\tPriority\tOwner\tStatus\tSubject\n";
+
+        currentFilteredData.forEach(t => {
+            if (selectedTickets.has(String(t.id))) {
+                const tNum = "#" + t.ticketNumber;
+                const subj = (t.subject || "No Subject").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const pri = (t.priority || "Normal").toUpperCase();
+                const own = t.owner || "Unassigned";
+                const stat = t.status || "Open";
+                
+                plainText += `${tNum}\t${pri}\t${own}\t${stat}\t${t.subject || "No Subject"}\n`;
+                htmlTable += `
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${tNum}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${pri}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${own}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${stat}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${subj}</td>
+                </tr>`;
+            }
+        });
+        htmlTable += `</tbody></table>`;
+
+        try {
+            // Uses the Clipboard API to write a rich HTML table
+            const blobHtml = new Blob([htmlTable], { type: "text/html" });
+            const blobText = new Blob([plainText], { type: "text/plain" });
+            const data = [new ClipboardItem({ "text/plain": blobText, "text/html": blobHtml })];
+            
+            navigator.clipboard.write(data).then(() => {
+                showToast(`Copied details for ${selectedTickets.size} tickets! Ready to paste into Excel.`);
+                toggleBulkMode();
+            });
+        } catch (e) {
+            // Fallback for older browsers
+            navigator.clipboard.writeText(plainText).then(() => {
+                 showToast(`Copied ${selectedTickets.size} tickets as plain text.`);
+                 toggleBulkMode();
+            });
+        }
     }
 
     function openAllFilteredTabs() {
