@@ -1513,18 +1513,19 @@
       // ✅ MOVED HERE: Now the 'filtered' variable actually exists!
       const fabContainer = document.getElementById('floatingActionContainer');
       const openAllBtn = document.getElementById('openAllBtn');
-      const countLabel = document.getElementById('openAllCount');
-      
-      countLabel.textContent = filtered.length;
       
       if (filtered.length > 35) {
           openAllBtn.style.opacity = '0.5';
           openAllBtn.style.pointerEvents = 'none';
           openAllBtn.setAttribute('data-tooltip', 'Filter down to < 35 tickets to open');
+          // Fix formatting for large numbers
+          openAllBtn.innerHTML = `<svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg><span>Open All Tabs (${filtered.length})</span>`;
       } else {
           openAllBtn.style.opacity = '1';
           openAllBtn.style.pointerEvents = 'auto';
           openAllBtn.setAttribute('data-tooltip', 'Open all below in new tabs');
+          // Fix formatting for active numbers
+          openAllBtn.innerHTML = `<svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg><span>Open All Tabs (${filtered.length})</span>`;
       }
 
       if (owner !== 'ALL' || priority !== 'ALL' || anomalyFilter !== 'ALL' || sortVal !== 'date-new' || showAllDepts || query.length > 0) {
