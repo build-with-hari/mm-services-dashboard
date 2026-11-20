@@ -526,34 +526,33 @@
   </div>
 
   <!-- UPGRADED ALT+C METRICS MODAL -->
-  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation: fadeInBlur 0.3s ease forwards;">
+  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation: fadeInBlur 0.3s ease forwards;">
     
-    <!-- Using native theme variables to completely eliminate the muddy gray -->
-    <div style="background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 20px; max-width:95vw; width:1400px; position:relative; margin:0; padding: 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.2);">
+    <!-- Modal Container: flex column locks the header/footer in place, allowing only the table to scroll -->
+    <div style="background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 20px; max-width:95vw; width:1400px; max-height: 90vh; display: flex; flex-direction: column; position:relative; margin:0; padding: 1.5rem 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.3);">
       
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem; flex-shrink: 0;">
         <h3 style="margin:0; color:var(--text-main); font-weight:800; font-size:1.4rem; display:flex; align-items:center; gap:10px;">
           <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-primary); width:24px; height:24px;"><path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Daily Metrics Report
+          14-Day Metrics History
         </h3>
         <span id="modalDateDisplay" class="sync-badge" style="margin:0; font-size: 0.85rem; padding: 6px 12px;"></span>
       </div>
       
-      <div style="background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; position:relative; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;">
-        <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, var(--accent-primary), var(--safe-color)); border-top-left-radius: 12px; border-top-right-radius: 12px;"></div>
+      <!-- Scrollable Table Area -->
+      <div style="background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0; margin-bottom: 1.5rem; position:relative; overflow: auto; flex-grow: 1; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;">
+        <div style="position:sticky; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, var(--accent-primary), var(--safe-color)); z-index: 10;"></div>
         
-        <!-- Hidden TSV store for exact Excel copying -->
         <textarea id="metricsTextarea" style="position:absolute; left:-9999px; opacity:0;" readonly></textarea>
         
-        <!-- Aligned Visual Table Container -->
-        <div id="metricsVisualTable" style="margin-top: 5px;"></div>
+        <div id="metricsVisualTable"></div>
       </div>
       
-      <div style="display:flex; justify-content:flex-end; gap:12px;">
-        <button class="btn-outline" onclick="document.getElementById('metricsModal').style.display='none'">Cancel</button>
+      <div style="display:flex; justify-content:flex-end; gap:12px; flex-shrink: 0;">
+        <button class="btn-outline" onclick="document.getElementById('metricsModal').style.display='none'">Close</button>
         <button class="btn-primary" onclick="copyMetricsFromModal()">
           <svg class="svg-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          Copy to Clipboard
+          Copy Full History
         </button>
       </div>
     </div>
@@ -972,7 +971,7 @@
         applyFilters();
       }
 
-      // ALT+C: METRICS LOGIC (14-DAY HISTORY CONCURRENT FETCH)
+      // ALT+C: 14-DAY INCREMENTAL HISTORY CACHE
       if (e.altKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
         generateDailyMetrics();
@@ -980,7 +979,7 @@
     });
 
     function generateDailyMetrics() {
-        showToast(`Fetching 14-day history... Please wait a few seconds.`);
+        showToast(`Loading History Database...`);
         const token = localStorage.getItem('mm_ticket_session');
         
         fetch(BACKEND_URL, {
@@ -993,25 +992,36 @@
             if (data.success) {
                 console.log("ALT+C DEBUGGER LOG:", data.tsv.debug);
                 
-                document.getElementById('modalDateDisplay').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24" style="margin-right:4px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> 14-Day History`;
+                document.getElementById('modalDateDisplay').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24" style="margin-right:4px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Live System Status`;
                 
                 const tsvData = data.tsv.tsv;
-                // Store invisible raw text for the clipboard copy
                 document.getElementById('metricsTextarea').value = tsvData;
                 
-                // Build a perfectly aligned HTML table for the visual UI
-                const rows = tsvData.split('\n');
-                let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">';
+                const rows = tsvData.trim().split('\n');
+                let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.75rem;">';
+                
                 rows.forEach((row, i) => {
                     let cells = row.split('\t');
-                    tableHtml += '<tr style="border-bottom: 1px solid var(--glass-border);">';
+                    tableHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
                     cells.forEach(cell => {
                         if(i === 0) {
-                            tableHtml += `<th style="padding: 10px 15px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px;">${cell}</th>`;
+                            tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
                         } else {
-                            tableHtml += `<td style="padding: 12px 15px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
+                            tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
                         }
                     });
+                    
+                    // Add Row Copy Button at the absolute end, sticky to the right side
+                    if(i === 0) {
+                        tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 6; box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
+                    } else {
+                        const safeRowText = row.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                            <button class="btn-outline btn-icon" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
+                                <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        </td>`;
+                    }
                     tableHtml += '</tr>';
                 });
                 tableHtml += '</table>';
