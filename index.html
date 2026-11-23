@@ -259,14 +259,14 @@
     .link-cell-wrapper:hover .link-cell-copy { opacity: 1; }
     .link-cell-copy:hover { color: var(--accent-hover); }
 
-    /* LEFT-ALIGNED TOOLTIP */
-    .pop-align-left[data-tooltip]::before { left: 0 !important; transform: translateX(0) translateY(5px) !important; }
-    .pop-align-left[data-tooltip]::after { left: 12px !important; transform: translateX(0) translateY(5px) !important; }
+    /* LEFT-ANCHOR TOOLTIP (Body renders to the right) */
+    .pop-align-left[data-tooltip]::before { left: 0 !important; right: auto !important; transform: translateX(0) translateY(5px) !important; }
+    .pop-align-left[data-tooltip]::after { left: 12px !important; right: auto !important; transform: translateX(0) translateY(5px) !important; }
     .pop-align-left.pop-bottom[data-tooltip]::before { transform: translateX(0) translateY(-5px) !important; }
     .pop-align-left.pop-bottom[data-tooltip]::after { transform: translateX(0) translateY(-5px) !important; }
     .pop-align-left[data-tooltip]:hover::before, .pop-align-left[data-tooltip]:hover::after { transform: translateX(0) translateY(0) !important; }
 
-    /* RIGHT-ALIGNED TOOLTIP (Fixes edge cutoff) */
+    /* RIGHT-ANCHOR TOOLTIP (Body renders to the left - Fixes right-edge cutoff) */
     .pop-align-right[data-tooltip]::before { left: auto !important; right: 0 !important; transform: translateX(0) translateY(5px) !important; }
     .pop-align-right[data-tooltip]::after { left: auto !important; right: 12px !important; transform: translateX(0) translateY(5px) !important; }
     .pop-align-right.pop-bottom[data-tooltip]::before { transform: translateX(0) translateY(-5px) !important; }
@@ -526,7 +526,7 @@
   </div>
 
   <!-- UPGRADED ALT+C METRICS MODAL -->
-  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation: fadeInBlur 0.3s ease forwards;">
+  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2147483647; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation: fadeInBlur 0.3s ease forwards;">
     
     <!-- Modal Container: flex column locks the header/footer in place, allowing only the table to scroll -->
     <div style="background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 20px; max-width:95vw; width:1400px; max-height: 90vh; display: flex; flex-direction: column; position:relative; margin:0; padding: 1.5rem 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.3);">
@@ -1035,11 +1035,12 @@
                     } else {
                         const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         
-                        // FIX: pop-align-right anchors to the right edge and pushes the text inward to the LEFT, avoiding the scroll boundary cutoff!
-                        // We also add pop-bottom to the first two rows so it pushes down and avoids the sticky header.
-                        const tooltipDirection = (i <= 2) ? 'pop-align-right pop-bottom' : 'pop-align-right';
+                        // We strictly anchor the tooltip to the RIGHT edge of the button, so it renders to the LEFT (inwards).
+                        // We also force the first row's tooltip to point DOWN (pop-bottom) to avoid the sticky header.
+                        const tooltipDirection = (i === 1) ? 'pop-align-right pop-bottom' : 'pop-align-right';
 
-                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); z-index: 6; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                        // Removed z-index from the cell so it doesn't create a trapping stacking context
+                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
                             <button class="btn-outline btn-icon ${tooltipDirection}" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
                                 <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
