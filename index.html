@@ -217,10 +217,7 @@
     .table-container { max-height: calc(100vh - 150px); overflow-y: auto; overflow-x: auto; border-radius: 12px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; border: 1px solid var(--glass-border); }
     table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
     th { position: sticky; top: 0; background: var(--header-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); z-index: 10; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); font-weight: 700; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: all 0.3s ease; background: var(--bg-color); }
-    /* Freeze Date Column */
-    td:first-child, th:first-child { position: sticky; left: 0; z-index: 8; background: var(--header-bg); border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-    th:first-child { z-index: 11; } /* Keep header corner above sticky rows */
+    td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--glass-border); vertical-align: top; font-size: 0.85rem; transition: all 0.3s ease; background: transparent; }
     tr:last-child td { border-bottom: none; }
     tr { transition: transform 0.2s ease, background-color 0.2s ease; }
     tr:hover td { background: var(--table-hover); }
@@ -1011,24 +1008,38 @@
                     rawCopyText += cellsNoDate.join('\t') + '\n';
 
                     tableHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
-                    cells.forEach(cell => {
+                    cells.forEach((cell, colIdx) => {
                         if(i === 0) {
-                            tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
+                            if (colIdx === 0) {
+                                // Freeze Date Column Header (Top-Left corner)
+                                tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; left: 0; z-index: 10; border-right: 1px solid var(--glass-border); box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
+                            } else {
+                                // Normal Top Header
+                                tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
+                            }
                         } else {
-                            tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
+                            if (colIdx === 0) {
+                                // Freeze Date Column Data (Scrolls up and down, but stays left)
+                                tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600; position: sticky; left: 0; z-index: 4; background: var(--card-bg); border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">${cell}</td>`;
+                            } else {
+                                // Normal Data
+                                tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
+                            }
                         }
                     });
                     
                     // Add Row Copy Button at the absolute end, sticky to the right side
                     if(i === 0) {
-                        tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 6; box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
+                        // Top-Right corner header
+                        tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 10; border-left: 1px solid var(--glass-border); box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
                     } else {
                         const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         
-                        // If it's the very first data row, pop the tooltip to the left so it doesn't get buried by the sticky header!
-                        const tooltipDirection = i === 1 ? 'pop-align-left' : 'pop-align-right pop-bottom';
+                        // FIX: pop-align-right forces the tooltip to expand to the LEFT (into the table). 
+                        // pop-bottom forces the first few rows down so they don't hide under the header!
+                        const tooltipDirection = (i <= 2) ? 'pop-align-right pop-bottom' : 'pop-align-right';
 
-                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--header-bg); z-index: 8; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); z-index: 8; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
                             <button class="btn-outline btn-icon ${tooltipDirection}" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
                                 <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
