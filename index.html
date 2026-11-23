@@ -203,7 +203,7 @@
     .notif-item strong:hover { color: var(--accent-hover); text-decoration: underline; }
     .notif-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
-    #toastContainer { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column-reverse; gap: 12px; align-items: flex-end; pointer-events: none; max-height: calc(100vh - 120px); }
+    #toastContainer { position: fixed; bottom: 30px; right: 30px; z-index: 20000; display: flex; flex-direction: column-reverse; gap: 12px; align-items: flex-end; pointer-events: none; max-height: calc(100vh - 120px); }
     .toast { background: var(--header-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); color: var(--text-main); padding: 14px 20px 14px 24px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; opacity: 1; transform: translateX(0) scale(1); animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; border-left: 4px solid var(--accent-primary); display: flex; align-items: center; gap: 12px; pointer-events: auto; width: 350px; box-sizing: border-box; transition: opacity 0.3s ease, transform 0.3s ease; }
     .toast-close { cursor: pointer; opacity: 0.6; padding: 4px; transition: 0.2s; border-radius: 4px; display: flex; }
     .toast-close:hover { opacity: 1; background: var(--glass-highlight); }
@@ -1023,7 +1023,7 @@
                         // Pass ONLY the data columns to the individual row copy button
                         const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
-                            <button class="btn-outline btn-icon" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row (No Date)">
+                            <button class="btn-outline btn-icon pop-align-right" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row (No Date)">
                                 <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
                         </td>`;
