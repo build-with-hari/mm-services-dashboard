@@ -1011,16 +1011,16 @@
                     cells.forEach((cell, colIdx) => {
                         if(i === 0) {
                             if (colIdx === 0) {
-                                // Freeze Date Column Header (Top-Left corner)
-                                tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; left: 0; z-index: 10; border-right: 1px solid var(--glass-border); box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
+                                // Freeze Date Column Header - Maximum Z-Index so it stays above everything
+                                tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; left: 0; z-index: 200; border-right: 1px solid var(--glass-border); box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
                             } else {
-                                // Normal Top Header
-                                tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
+                                // Normal Top Header - High Z-Index
+                                tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
                             }
                         } else {
                             if (colIdx === 0) {
-                                // Freeze Date Column Data (Scrolls vertically, but stays glued to the left horizontally)
-                                tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600; position: sticky; left: 0; z-index: 4; background: var(--card-bg); border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">${cell}</td>`;
+                                // Freeze Date Column Data - Medium Z-index
+                                tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600; position: sticky; left: 0; z-index: 50; background: var(--card-bg); border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">${cell}</td>`;
                             } else {
                                 // Normal Data
                                 tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
@@ -1030,17 +1030,20 @@
                     
                     // Add Row Copy Button at the absolute end, sticky to the right side
                     if(i === 0) {
-                        // Top-Right corner Copy header
-                        tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 10; border-left: 1px solid var(--glass-border); box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
+                        // Top-Right corner Copy header - Maximum Z-Index
+                        tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 200; border-left: 1px solid var(--glass-border); box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
                     } else {
                         const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         
-                        // We strictly anchor the tooltip to the RIGHT edge of the button, so it renders to the LEFT (inwards).
-                        // We also force the first row's tooltip to point DOWN (pop-bottom) to avoid the sticky header.
-                        const tooltipDirection = (i === 1) ? 'pop-align-right pop-bottom' : 'pop-align-right';
+                        // Drop the tooltip down on the first two rows to avoid hitting the top header
+                        const tooltipDirection = (i <= 2) ? 'pop-align-right pop-bottom' : 'pop-align-right';
 
-                        // Removed z-index from the cell so it doesn't create a trapping stacking context
-                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                        // 🔥 DYNAMIC Z-INDEX MAGIC 🔥
+                        // This calculates 89, 88, 87... meaning Row 1 natively sits structurally on top of Row 2.
+                        // It stays lower than the headers (100) so it scrolls under them safely.
+                        const dynamicZIndex = 90 - i;
+
+                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); z-index: ${dynamicZIndex}; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
                             <button class="btn-outline btn-icon ${tooltipDirection}" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
                                 <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
