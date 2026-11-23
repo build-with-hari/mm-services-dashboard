@@ -1019,7 +1019,7 @@
                             }
                         } else {
                             if (colIdx === 0) {
-                                // Freeze Date Column Data (Scrolls up and down, but stays left)
+                                // Freeze Date Column Data (Scrolls vertically, but stays glued to the left horizontally)
                                 tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600; position: sticky; left: 0; z-index: 4; background: var(--card-bg); border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">${cell}</td>`;
                             } else {
                                 // Normal Data
@@ -1030,16 +1030,16 @@
                     
                     // Add Row Copy Button at the absolute end, sticky to the right side
                     if(i === 0) {
-                        // Top-Right corner header
+                        // Top-Right corner Copy header
                         tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 10; border-left: 1px solid var(--glass-border); box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
                     } else {
                         const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         
-                        // FIX: pop-align-right forces the tooltip to expand to the LEFT (into the table). 
-                        // pop-bottom forces the first few rows down so they don't hide under the header!
+                        // FIX: pop-align-right anchors to the right edge and pushes the text inward to the LEFT, avoiding the scroll boundary cutoff!
+                        // We also add pop-bottom to the first two rows so it pushes down and avoids the sticky header.
                         const tooltipDirection = (i <= 2) ? 'pop-align-right pop-bottom' : 'pop-align-right';
 
-                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); z-index: 8; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                        tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); z-index: 6; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
                             <button class="btn-outline btn-icon ${tooltipDirection}" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
                                 <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
