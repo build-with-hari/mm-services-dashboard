@@ -995,13 +995,18 @@
                 document.getElementById('modalDateDisplay').innerHTML = `<svg class="svg-icon" viewBox="0 0 24 24" style="margin-right:4px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Live System Status`;
                 
                 const tsvData = data.tsv.tsv;
-                document.getElementById('metricsTextarea').value = tsvData;
-                
                 const rows = tsvData.trim().split('\n');
+                
                 let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.75rem;">';
+                let rawCopyText = ""; // Holds the invisible data without dates
                 
                 rows.forEach((row, i) => {
                     let cells = row.split('\t');
+                    
+                    // Slice out the Date column (Index 0) for the clipboard
+                    let cellsNoDate = cells.slice(1);
+                    rawCopyText += cellsNoDate.join('\t') + '\n';
+
                     tableHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
                     cells.forEach(cell => {
                         if(i === 0) {
@@ -1015,9 +1020,10 @@
                     if(i === 0) {
                         tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 6; box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
                     } else {
-                        const safeRowText = row.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        // Pass ONLY the data columns to the individual row copy button
+                        const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         tableHtml += `<td style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
-                            <button class="btn-outline btn-icon" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
+                            <button class="btn-outline btn-icon" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row (No Date)">
                                 <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
                         </td>`;
@@ -1025,6 +1031,9 @@
                     tableHtml += '</tr>';
                 });
                 tableHtml += '</table>';
+                
+                // Inject the date-stripped string into the hidden textarea for Full Copy
+                document.getElementById('metricsTextarea').value = rawCopyText;
                 
                 // Inject the beautiful table and show modal
                 document.getElementById('metricsVisualTable').innerHTML = tableHtml;
