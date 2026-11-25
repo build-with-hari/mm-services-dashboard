@@ -284,6 +284,56 @@
     .fab-bulk span { color: var(--text-main); font-weight: 700; font-size: 0.9rem; margin-right: 5px;}
     .cb-custom { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-primary); }
 
+    /* COLLAPSIBLE WEEKEND ROWS (ALT+C MODAL) */
+    .weekend-toggle-row { cursor: pointer; user-select: none; }
+    .weekend-toggle-row td {
+      padding: 7px 16px !important;
+      background: rgba(148, 163, 184, 0.08) !important;
+      color: var(--text-muted) !important;
+      font-size: 0.7rem !important;
+      font-weight: 600 !important;
+      border-bottom: 1px dashed var(--glass-border) !important;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .weekend-toggle-row:hover td {
+      background: rgba(56, 189, 248, 0.08) !important;
+      color: var(--accent-primary) !important;
+    }
+    .weekend-toggle-row td.wknd-sticky-left,
+    .weekend-toggle-row td.wknd-sticky-right {
+      background: var(--header-bg) !important;
+    }
+    .weekend-chevron {
+      width: 13px;
+      height: 13px;
+      transition: transform 0.25s ease;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+    .weekend-toggle-row.expanded .weekend-chevron { transform: rotate(90deg); }
+    .weekend-row td {
+      background: rgba(148, 163, 184, 0.05) !important;
+      color: var(--text-muted) !important;
+      font-weight: 400 !important;
+      opacity: 0.72;
+    }
+    .weekend-row:hover td { opacity: 0.95; }
+    .weekend-row td.wknd-sticky-left,
+    .weekend-row td.wknd-sticky-right {
+      background: var(--bg-color) !important;
+      opacity: 1;
+    }
+    .wknd-tag {
+      font-size: 0.6rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(148, 163, 184, 0.16);
+      color: var(--text-muted);
+      margin-left: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
   </style>
 </head>
 <body>
@@ -996,59 +1046,129 @@
                 
                 const tsvData = data.tsv.tsv;
                 const rows = tsvData.trim().split('\n');
-                
-                let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.75rem;">';
-                let rawCopyText = ""; // Holds the invisible data without dates
-                
-                rows.forEach((row, i) => {
-                    let cells = row.split('\t');
-                    
-                    // Slice out the Date column (Index 0) for the clipboard
-                    let cellsNoDate = cells.slice(1);
-                    rawCopyText += cellsNoDate.join('\t') + '\n';
 
-                    tableHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
-                    cells.forEach((cell, colIdx) => {
-                        if(i === 0) {
+                // Parse "MMM dd" safely even across year boundaries (Dec -> Jan)
+                function parseMetricsDate(dateLabel) {
+                    const now = new Date();
+                    let year = now.getFullYear();
+                    let d = new Date(`${dateLabel.trim()}, ${year}`);
+                    if (isNaN(d.getTime())) return null;
+                    if (d.getTime() - now.getTime() > 30 * 86400000) {
+                        d = new Date(`${dateLabel.trim()}, ${year - 1}`);
+                    }
+                    return d;
+                }
+
+                const parsedRows = rows.map((row, i) => {
+                    const cells = row.split('\t');
+                    const dateObj = i === 0 ? null : parseMetricsDate(cells[0]);
+                    const dayIdx = dateObj ? dateObj.getDay() : -1;
+                    const isWeekend = (dayIdx === 0 || dayIdx === 6);
+                    const dayShort = dayIdx === 0 ? 'Sun' : (dayIdx === 6 ? 'Sat' : '');
+                    return { cells, isWeekend, dayShort };
+                });
+
+                let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.75rem;">';
+                let rawCopyText = ""; // Holds weekday data (no dates) for Full Copy
+                let weekendGroupCounter = 0;
+
+                for (let i = 0; i < parsedRows.length; i++) {
+                    const { cells, isWeekend, dayShort } = parsedRows[i];
+                    const cellsNoDate = cells.slice(1);
+
+                    // Exclude weekend rows from "Copy Full History" since only weekdays are needed
+                    if (i === 0 || !isWeekend) {
+                        rawCopyText += cellsNoDate.join('\t') + '\n';
+                    }
+
+                    // 1. HEADER ROW
+                    if (i === 0) {
+                        tableHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
+                        cells.forEach((cell, colIdx) => {
                             if (colIdx === 0) {
-                                // Freeze Date Header: Max z-index (100) so it scrolls over everything
                                 tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; left: 0; z-index: 100; border-right: 1px solid var(--glass-border); box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
                             } else {
-                                // Normal Top Header
                                 tableHtml += `<th style="padding: 12px 16px; color: var(--text-muted); white-space: nowrap; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; background: var(--header-bg); position: sticky; top: 0; z-index: 90; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">${cell}</th>`;
                             }
+                        });
+                        tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 100; border-left: 1px solid var(--glass-border); box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
+                        tableHtml += '</tr>';
+                        continue;
+                    }
+
+                    // 2. COLLAPSIBLE WEEKEND GROUP (Groups consecutive Sat/Sun rows)
+                    if (isWeekend) {
+                        weekendGroupCounter++;
+                        const groupId = `wknd-grp-${weekendGroupCounter}`;
+                        const groupItems = [];
+
+                        let j = i;
+                        while (j < parsedRows.length && parsedRows[j].isWeekend) {
+                            groupItems.push({ ...parsedRows[j], rowIndex: j });
+                            j++;
+                        }
+
+                        const dateSummary = groupItems.map(item => `${item.cells[0]} (${item.dayShort})`).join(', ');
+
+                        // Toggle Bar Row (visible by default)
+                        tableHtml += `<tr class="weekend-toggle-row" onclick="toggleWeekendGroup('${groupId}', this)">`;
+                        tableHtml += `<td class="wknd-sticky-left" style="white-space: nowrap; position: sticky; left: 0; z-index: 40; border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">
+                            <svg class="svg-icon weekend-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>Weekend
+                        </td>`;
+                        tableHtml += `<td colspan="${cells.length - 1}" style="white-space: nowrap;">
+                            <span class="wknd-hint">${dateSummary} • Click to expand</span>
+                        </td>`;
+                        tableHtml += `<td class="wknd-sticky-right" style="text-align: right; position: sticky; right: 0; z-index: 6; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                            <span style="font-size: 0.65rem; opacity: 0.75;">${groupItems.length}d</span>
+                        </td>`;
+                        tableHtml += '</tr>';
+
+                        // Hidden Weekend Data Rows
+                        groupItems.forEach(item => {
+                            const wkndNoDate = item.cells.slice(1);
+                            const safeRowText = wkndNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                            const tooltipDirection = item.rowIndex <= 3 ? 'pop-align-right pop-bottom' : 'pop-align-right';
+
+                            tableHtml += `<tr class="weekend-row" data-weekend-group="${groupId}" style="display: none; border-bottom: 1px solid rgba(255,255,255,0.04);">`;
+                            item.cells.forEach((cell, colIdx) => {
+                                if (colIdx === 0) {
+                                    tableHtml += `<td class="wknd-sticky-left" style="padding: 10px 16px; white-space: nowrap; position: sticky; left: 0; z-index: 40; border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">${cell}<span class="wknd-tag">${item.dayShort}</span></td>`;
+                                } else {
+                                    tableHtml += `<td style="padding: 10px 16px; white-space: nowrap;">${cell}</td>`;
+                                }
+                            });
+                            tableHtml += `<td class="wknd-sticky-right" onmouseenter="this.style.zIndex='999'" onmouseleave="this.style.zIndex='6'" style="padding: 6px 16px; text-align: right; position: sticky; right: 0; z-index: 6; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                                <button class="btn-outline btn-icon ${tooltipDirection}" style="height:28px; width:28px; border-radius:6px; opacity:0.75;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
+                                    <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </td>`;
+                            tableHtml += '</tr>';
+                        });
+
+                        i = j - 1;
+                        continue;
+                    }
+
+                    // 3. NORMAL WEEKDAY ROW
+                    tableHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
+                    cells.forEach((cell, colIdx) => {
+                        if (colIdx === 0) {
+                            tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600; position: sticky; left: 0; z-index: 40; background: var(--card-bg); border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">${cell}</td>`;
                         } else {
-                            if (colIdx === 0) {
-                                // Freeze Date Data: Kept below header (40) but stays locked to left
-                                tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600; position: sticky; left: 0; z-index: 40; background: var(--card-bg); border-right: 1px solid var(--glass-border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">${cell}</td>`;
-                            } else {
-                                // Normal Data
-                                tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
-                            }
+                            tableHtml += `<td style="padding: 12px 16px; color: var(--text-main); white-space: nowrap; font-weight: 600;">${cell}</td>`;
                         }
                     });
-                    
-                    // Add Row Copy Button at the absolute end, sticky to the right side
-                    if(i === 0) {
-                        // Top-Right corner Copy header: Max z-index (100)
-                        tableHtml += `<th style="padding: 12px 16px; text-align: right; background: var(--header-bg); position: sticky; top: 0; right: 0; z-index: 100; border-left: 1px solid var(--glass-border); box-shadow: -2px 2px 5px rgba(0,0,0,0.1);">Copy</th>`;
-                    } else {
-                        const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                        
-                        // FIX: First row points DOWN to dodge the header. All other rows point UP. All rows project LEFT to dodge the right edge.
-                        const tooltipDirection = i === 1 ? 'pop-align-right pop-bottom' : 'pop-align-right';
 
-                        // 🔥 HOVER Z-INDEX BOOST 🔥 
-                        // The cell normally sits flat at z-index: 6. 
-                        // The exact second you hover over it, onmouseenter boosts it to 999, forcing the tooltip to paint over everything!
-                        tableHtml += `<td onmouseenter="this.style.zIndex='999'" onmouseleave="this.style.zIndex='6'" style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); z-index: 6; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
-                            <button class="btn-outline btn-icon ${tooltipDirection}" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
-                                <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            </button>
-                        </td>`;
-                    }
+                    const safeRowText = cellsNoDate.join('\t').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const tooltipDirection = i <= 3 ? 'pop-align-right pop-bottom' : 'pop-align-right';
+
+                    tableHtml += `<td onmouseenter="this.style.zIndex='999'" onmouseleave="this.style.zIndex='6'" style="padding: 6px 16px; text-align: right; position: sticky; right: 0; background: var(--card-bg); z-index: 6; border-left: 1px solid var(--glass-border); box-shadow: -2px 0 5px rgba(0,0,0,0.05);">
+                        <button class="btn-outline btn-icon ${tooltipDirection}" style="height:28px; width:28px; border-radius:6px;" onclick="copyToCB('${safeRowText}')" data-tooltip="Copy Row">
+                            <svg class="svg-icon" viewBox="0 0 24 24" style="width:12px; height:12px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                    </td>`;
                     tableHtml += '</tr>';
-                });
+                }
                 tableHtml += '</table>';
                 
                 // Inject the date-stripped string into the hidden textarea for Full Copy
@@ -1064,6 +1184,19 @@
             }
         })
         .catch(err => showToast("Network error while generating metrics."));
+    }
+
+    function toggleWeekendGroup(groupId, toggleRow) {
+        const isExpanded = toggleRow.classList.toggle('expanded');
+        document.querySelectorAll(`tr[data-weekend-group="${groupId}"]`).forEach(row => {
+            row.style.display = isExpanded ? 'table-row' : 'none';
+        });
+        const hint = toggleRow.querySelector('.wknd-hint');
+        if (hint) {
+            hint.textContent = isExpanded
+                ? hint.textContent.replace('Click to expand', 'Click to collapse')
+                : hint.textContent.replace('Click to collapse', 'Click to expand');
+        }
     }
 
     function copyMetricsFromModal() {
