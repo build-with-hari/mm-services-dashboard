@@ -60,6 +60,12 @@
       from { opacity: 0; filter: blur(15px); transform: translateY(15px); }
       to { opacity: 1; filter: blur(0); transform: translateY(0); }
     }
+    @keyframes fadeOutBlur {
+      from { opacity: 1; filter: blur(0); transform: translateY(0); }
+      to { opacity: 0; filter: blur(15px); transform: translateY(15px); }
+    }
+    #metricsModal { animation: fadeInBlur 0.3s ease forwards; }
+    #metricsModal.closing { animation: fadeOutBlur 0.25s ease forwards; pointer-events: none; }
     @keyframes fadeSlideUp {
       from { opacity: 0; transform: translateY(20px); filter: blur(5px); }
       to { opacity: 1; transform: translateY(0); filter: blur(0); }
@@ -576,7 +582,7 @@
   </div>
 
   <!-- UPGRADED ALT+C METRICS MODAL -->
-  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999999; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation: fadeInBlur 0.3s ease forwards;" onclick="if(event.target === this) { this.style.display='none'; document.body.style.overflow='auto'; }">
+  <div id="metricsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999999; align-items:center; justify-content:center; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);" onclick="if(event.target === this) closeMetricsModal();">
     
     <!-- Modal Container: flex column locks the header/footer in place, allowing only the table to scroll -->
     <div style="background: var(--bg-color); border: 1px solid var(--glass-border); border-radius: 20px; max-width:95vw; width:1400px; max-height: 90vh; display: flex; flex-direction: column; position:relative; margin:0; padding: 1.5rem 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.3);">
@@ -599,7 +605,7 @@
       </div>
       
       <div style="display:flex; justify-content:flex-end; gap:12px; flex-shrink: 0;">
-        <button class="btn-outline" onclick="document.getElementById('metricsModal').style.display='none'; document.body.style.overflow='auto';">Close</button>
+        <button class="btn-outline" onclick="closeMetricsModal()">Close</button>
         <button class="btn-primary" onclick="copyMetricsFromModal()">
           <svg class="svg-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           Copy Full History
@@ -1176,7 +1182,9 @@
                 
                 // Inject the beautiful table and show modal
                 document.getElementById('metricsVisualTable').innerHTML = tableHtml;
-                document.getElementById('metricsModal').style.display = 'flex';
+                const modal = document.getElementById('metricsModal');
+                modal.classList.remove('closing');
+                modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden'; // Locks the background from scrolling!
                 
             } else {
@@ -1199,22 +1207,31 @@
         }
     }
 
+    function closeMetricsModal() {
+        const modal = document.getElementById('metricsModal');
+        if (!modal || modal.style.display === 'none' || modal.classList.contains('closing')) return;
+        modal.classList.add('closing');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.classList.remove('closing');
+            document.body.style.overflow = 'auto'; // Restores background scrolling!
+        }, 250);
+    }
+
     function copyMetricsFromModal() {
         const txt = document.getElementById('metricsTextarea').value;
         
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(txt).then(() => {
                 showToast("Metrics securely copied! You can paste in Excel.");
-                document.getElementById('metricsModal').style.display = 'none';
-                document.body.style.overflow = 'auto'; // Restores background scrolling!
+                closeMetricsModal();
             });
         } else {
             let ta = document.getElementById('metricsTextarea');
             ta.select();
             document.execCommand('copy');
             showToast("Metrics copied via fallback!");
-            document.getElementById('metricsModal').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Restores background scrolling!
+            closeMetricsModal();
         }
     }
 
